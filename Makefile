@@ -10,8 +10,9 @@ LCC = $(GBDK_HOME)bin/lcc
 # Possible are: gb gbc pocket megaduck sms gg
 TARGETS=gb #pocket megaduck sms gg
 
+#-Wl-yp0x143=0x80
 # Configure platform specific LCC flags here:
-LCCFLAGS_gb      = -Wl-yt0x1B  -Wm-yn"splat"# Set an MBC for banking (1B-ROM+MBC5+RAM+BATT)
+LCCFLAGS_gb      = -Wl-yt0x1B  -Wm-yn"splat" -Wm-yc # Set an MBC for banking (1B-ROM+MBC5+RAM+BATT) 
 LCCFLAGS_pocket  = -Wl-yt0x1B # Usually the same as required for .gb
 LCCFLAGS_duck    = -Wl-yt0x1B # Usually the same as required for .gb
 LCCFLAGS_gbc     = -Wl-yt0x1B -Wm-yc # Same as .gb with: -Wm-yc (gb & gbc) or Wm-yC (gbc exclusive)
@@ -30,7 +31,7 @@ PROJECTNAME = main
 # EXT?=gb # Only sets extension to default (game boy .gb) if not populated
 SRCDIR      = src
 OBJDIR      = obj/$(EXT)
-RESDIR      = res
+RESDIR      = graphics
 BINDIR      = build/$(EXT)
 MKDIRS      = $(OBJDIR) $(BINDIR) # See bottom of Makefile for directory auto-creation
 
