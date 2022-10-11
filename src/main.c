@@ -42,28 +42,91 @@ const UWORD spritePalette[] = {
 uint8_t joydata = 0;
 
 uint8_t playerX = 80;
-uint8_t playerY = 80;
+uint8_t playerY = 50;
 
 int16_t playerXScaled = 80<<3;
-int16_t playerYScaled = 80<<3;
+int16_t playerYScaled = 50<<3;
 
-int16_t speed = 8;
+
+int16_t movementSpeed = 8;
+
+//positive when going down
+int16_t ySpeed = 0;
+
+
+uint8_t onGround = 0;
+uint8_t jumping = 0;
+uint8_t jumpReleased = 1;
+
+
+//returns true if there is no collision in a point
+inline uint8_t checkCollision(uint8_t x, uint8_t y) {
+	uint16_t ind = 32*((y)>>3) + ((x)>>3);
+	return (MapZeroPLN0[ind] != 0x01) ;
+
+}
 
 
 void movePlayer() {
 	if (joydata & J_LEFT) {
-		playerXScaled -= speed;
+		if (checkCollision(playerX - 8, playerY - 8) && checkCollision(playerX - 8, playerY-1) && checkCollision(playerX - 8, playerY - 15)) {
+			playerXScaled -= movementSpeed;
+		}
 	}
 	if (joydata & J_RIGHT) {
-		playerXScaled += speed;
+		if (checkCollision(playerX + 8, playerY - 8) && checkCollision(playerX + 8, playerY-1) && checkCollision(playerX + 8, playerY - 15)) {
+			playerXScaled += movementSpeed;
+		}
 	}
 	playerX = (uint8_t) (playerXScaled >> 3);
+
+	if (ySpeed >= 0) {
+		
+		uint8_t newPlayerY = (playerYScaled + ySpeed) >> 3;
+		if (checkCollision(playerX, newPlayerY) && checkCollision(playerX+7, newPlayerY) && checkCollision(playerX-7, newPlayerY)) {
+			ySpeed += 1;
+		}
+		else {
+			onGround = 1;
+			jumping = 0;
+			ySpeed = 0;
+		}
+	}
+
+	if (ySpeed < 0) {
+		ySpeed += 1;
+	}
+
+	if (joydata & J_A) {
+		if (onGround && !jumping && jumpReleased) {
+			ySpeed = -10;
+			jumping = 1;
+			onGround = 0;
+			jumpReleased = 0;
+		}
+		else if (jumping < 12 && !onGround ) {
+			jumping += 1;
+			ySpeed -= 2;
+		}
+	} else {
+		jumpReleased = 1;
+	}
+
+
+
+
+	playerYScaled += ySpeed;
 	playerY = (uint8_t) (playerYScaled >> 3);
+
+
+
+
 
 	move_sprite(0, playerX,playerY);
 	move_sprite(1, playerX+8,playerY);
 
 }
+
 
 
 void main(){
