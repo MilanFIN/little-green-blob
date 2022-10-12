@@ -80,9 +80,11 @@ void movePlayer() {
 	}
 	playerX = (uint8_t) (playerXScaled >> 3);
 
+
 	if (ySpeed >= 0) {
-		
+		//player bottom
 		uint8_t newPlayerY = (playerYScaled + ySpeed) >> 3;
+
 		if (checkCollision(playerX, newPlayerY) && checkCollision(playerX+7, newPlayerY) && checkCollision(playerX-7, newPlayerY)) {
 			ySpeed += 1;
 		}
@@ -94,6 +96,12 @@ void movePlayer() {
 	}
 
 	if (ySpeed < 0) {
+		//player top
+		uint8_t newPlayerY = ((playerYScaled + ySpeed) >> 3) - 16;
+
+		if (!checkCollision(playerX, newPlayerY) || !checkCollision(playerX+7, newPlayerY) || !checkCollision(playerX-7, newPlayerY)) {
+			ySpeed = 0;
+		}
 		ySpeed += 1;
 	}
 
