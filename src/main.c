@@ -39,6 +39,9 @@ const UWORD spritePalette[] = {
 };
 
 
+const uint8_t CENTERX = 80;
+const uint8_t CENTERY = 72;
+
 uint8_t joydata = 0;
 
 uint8_t playerX = 80;
@@ -130,10 +133,36 @@ void movePlayer() {
 
 
 
-	move_sprite(0, playerX,playerY);
-	move_sprite(1, playerX+8,playerY);
 
 }
+
+
+void updateEntityPositions() {
+
+	int16_t xDiff = playerX - CENTERX;
+	int16_t yDiff = playerY - CENTERY - 32;
+
+	if (xDiff < 0) {
+		xDiff = 0;
+	}
+	if (xDiff >= 95) { //map width - 160
+		xDiff = 95;
+	}
+	if (yDiff < 0) {
+		yDiff = 0;
+	}
+	if (yDiff >= 95) {
+		yDiff = 95;
+	}
+
+
+	move_sprite(0, playerX - xDiff, playerY - yDiff);
+	move_sprite(1, playerX - xDiff+8, playerY - yDiff);
+
+	move_bkg(xDiff, yDiff);
+
+}
+
 
 
 
@@ -183,6 +212,8 @@ void main(){
 		joydata = joypad();
 
 		movePlayer();
+
+		updateEntityPositions();
 
 		wait_vbl_done();
 
