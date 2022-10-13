@@ -29,6 +29,11 @@ const UWORD backgroundPalette[] = {
 	TilesetCGBPal3c1,
 	TilesetCGBPal3c2,
 	TilesetCGBPal3c3,
+
+	TilesetCGBPal4c0,
+	TilesetCGBPal4c1,
+	TilesetCGBPal4c2,
+	TilesetCGBPal4c3
 };
 
 const UWORD spritePalette[] = {
@@ -163,7 +168,29 @@ void updateEntityPositions() {
 
 }
 
-
+void moveToLevelStart() {
+	uint16_t x;
+	uint16_t y;
+	uint8_t shouldBreak = 0;
+	for (y = 0; y < 32; y++) {
+		if (shouldBreak) {
+			break;
+		}
+		for (x = 0; x < 32; x++) {
+			uint16_t ind = 32*y + x;
+			if (MapZeroPLN0[ind] == 0x04) {
+				shouldBreak = 1;
+				break;
+			}
+		}
+	}
+	x = x*8 + 4;
+	y *= 8;
+	playerXScaled = x << 3;
+	playerYScaled = y << 3;
+	playerX = x;
+	playerY = y;
+}
 
 
 void main(){
@@ -186,9 +213,9 @@ void main(){
 	SHOW_BKG;
 
 
-	set_bkg_palette(0, 4, &backgroundPalette[0]);
+	set_bkg_palette(0, 5, &backgroundPalette[0]);
 
-	set_bkg_data(0, 4, Tileset); 
+	set_bkg_data(0, 5, Tileset); 
 
 	VBK_REG = 1;
 	set_bkg_tiles(0,0, 32, 32, MapZeroPLN1);
@@ -206,6 +233,8 @@ void main(){
 	set_sprite_prop(0,0); //loading 0th palette
 	set_sprite_prop(1,0); //also 0th
 
+
+	moveToLevelStart();
 
 	while(1) {
 
