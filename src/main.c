@@ -66,6 +66,11 @@ uint8_t onGround = 0;
 uint8_t jumping = 0;
 uint8_t jumpReleased = 1;
 
+//will be set to the tile index that has the finish
+// initialized during level load
+uint16_t finishTileIndex = 0;
+
+
 
 //returns true if there is no collision in a point
 inline uint8_t checkCollision(uint8_t x, uint8_t y) {
@@ -169,8 +174,8 @@ void updateEntityPositions() {
 }
 
 void moveToLevelStart() {
-	uint16_t x;
-	uint16_t y;
+	uint16_t x = 0;
+	uint16_t y = 0;
 	uint8_t shouldBreak = 0;
 	for (y = 0; y < 32; y++) {
 		if (shouldBreak) {
@@ -190,6 +195,34 @@ void moveToLevelStart() {
 	playerYScaled = y << 3;
 	playerX = x;
 	playerY = y;
+
+	shouldBreak = 0;
+	for (uint16_t j = 0; j < 32; j++) {
+		if (shouldBreak) {
+			break;
+		}
+		for (uint16_t i = 0; i < 32; i++) {
+			uint16_t ind = 32*j + i;
+			if (MapZeroPLN0[ind] == 0x05) {
+				finishTileIndex = ind;
+				shouldBreak = 1;
+				break;
+			}
+		}
+	}
+
+}
+
+//1 if finished, 0 otherwise
+uint8_t checkFinish() {
+	uint16_t ind = 32*((playerY - 8)>>3) + ((playerX)>>3);
+
+	if (ind == finishTileIndex) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
 }
 
 
@@ -215,7 +248,7 @@ void main(){
 
 	set_bkg_palette(0, 5, &backgroundPalette[0]);
 
-	set_bkg_data(0, 5, Tileset); 
+	set_bkg_data(0, 6, Tileset); 
 
 	VBK_REG = 1;
 	set_bkg_tiles(0,0, 32, 32, MapZeroPLN1);
@@ -233,18 +266,26 @@ void main(){
 	set_sprite_prop(0,0); //loading 0th palette
 	set_sprite_prop(1,0); //also 0th
 
-
-	moveToLevelStart();
-
 	while(1) {
 
-		joydata = joypad();
+		moveToLevelStart();
 
-		movePlayer();
+		while(1) {
 
-		updateEntityPositions();
+			joydata = joypad();
 
-		wait_vbl_done();
+			movePlayer();
+
+			updateEntityPositions();
+
+			if (checkFinish()) {
+				break;
+			}
+
+			wait_vbl_done();
+
+		}
 
 	}
+	
 }
