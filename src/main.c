@@ -70,6 +70,7 @@ uint8_t jumpReleased = 1;
 // initialized during level load
 uint16_t finishTileIndex = 0;
 
+uint16_t hp = 800;
 
 
 //returns true if there is no collision in a point
@@ -84,11 +85,13 @@ void movePlayer() {
 	if (joydata & J_LEFT) {
 		if (checkCollision(playerX - 8, playerY - 8) && checkCollision(playerX - 8, playerY-1) && checkCollision(playerX - 8, playerY - 15)) {
 			playerXScaled -= movementSpeed;
+			hp -= 1;
 		}
 	}
 	if (joydata & J_RIGHT) {
 		if (checkCollision(playerX + 8, playerY - 8) && checkCollision(playerX + 8, playerY-1) && checkCollision(playerX + 8, playerY - 15)) {
 			playerXScaled += movementSpeed;
+			hp -= 1;
 		}
 	}
 	playerX = (uint8_t) (playerXScaled >> 3);
@@ -140,6 +143,15 @@ void movePlayer() {
 	playerY = (uint8_t) (playerYScaled >> 3);
 
 
+	if (hp % 100 == 0) {
+		uint16_t tile = (800 - hp) / 100;
+		set_sprite_tile(0, tile*4);
+		set_sprite_tile(1, tile*4+2);
+		hp -= 1;
+	}
+	if (hp > 800) {
+		hp = 800;
+	}
 
 
 
@@ -259,7 +271,7 @@ void main(){
 
 	set_sprite_palette(0,1,&spritePalette[0]); // loading 1 palette of 4 colors
 
-	set_sprite_data(0, 4, PlayerTiles); //single tile
+	set_sprite_data(0, 32, PlayerTiles);
 	set_sprite_tile(0, 0);
 	set_sprite_tile(1, 2);
 
