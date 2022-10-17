@@ -73,6 +73,10 @@ uint16_t finishTileIndex = 0;
 uint16_t hp = 800;
 uint16_t maxHp = 800;
 
+uint8_t playerFrame = 0;
+uint8_t frameCounter = 20;
+const uint8_t ANIMFRAMETIME = 20;
+
 
 //returns true if there is no collision in a point
 inline uint8_t checkCollision(uint8_t x, uint8_t y) {
@@ -90,13 +94,13 @@ void movePlayer() {
 
 		if (checkCollision(playerX - sideEdge, playerY - (hatHeight >> 1)) && checkCollision(playerX - sideEdge, playerY-1) && checkCollision(playerX - sideEdge, playerY - hatHeight)) {
 			playerXScaled -= movementSpeed;
-			hp -= 1;
+			hp -= 2;
 		}
 	}
 	if (joydata & J_RIGHT) {
 		if (checkCollision(playerX + sideEdge, playerY - (hatHeight >> 1)) && checkCollision(playerX + sideEdge, playerY-1) && checkCollision(playerX + sideEdge, playerY - hatHeight)) {
 			playerXScaled += movementSpeed;
-			hp -= 1;
+			hp -= 2;
 		}
 	}
 	playerX = (uint8_t) (playerXScaled >> 3);
@@ -121,7 +125,7 @@ void movePlayer() {
 		//player top
 		uint8_t newPlayerY = ((playerYScaled + ySpeed) >> 3) - hatHeight;
 
-		if (!checkCollision(playerX, newPlayerY) || !checkCollision(playerX + sideEdge, newPlayerY) || !checkCollision(playerX - sideEdge, newPlayerY)) {
+		if (!checkCollision(playerX, newPlayerY) || !checkCollision(playerX + sideEdge + 1, newPlayerY) || !checkCollision(playerX - sideEdge + 1, newPlayerY)) {
 			ySpeed = 0;
 		}
 		ySpeed += 1;
@@ -148,16 +152,16 @@ void movePlayer() {
 	playerYScaled += ySpeed;
 	playerY = (uint8_t) (playerYScaled >> 3);
 
-
-	if (hp % 100 == 0) {
-		uint16_t tile = (800 - hp) / 100;
-		set_sprite_tile(0, tile*4);
-		set_sprite_tile(1, tile*4+2);
-		hp -= 1;
-	}
 	if (hp > 800) {
 		hp = 800;
 	}
+
+
+	uint16_t currentTile = (maxHp - hp) / 100;
+
+
+	set_sprite_tile(0, currentTile*4 + (playerFrame << 5));
+	set_sprite_tile(1, currentTile*4+2 + (playerFrame << 5));
 
 
 
@@ -231,6 +235,18 @@ void moveToLevelStart() {
 
 }
 
+void animatePlayer() {
+
+	frameCounter -= 1;
+	if (frameCounter == 0) {
+		playerFrame += 1;
+		if (playerFrame == 2) {
+			playerFrame = 0;
+		}
+		frameCounter = ANIMFRAMETIME;
+	}
+}
+
 //1 if finished, 0 otherwise
 uint8_t checkFinish() {
 	uint16_t ind = 32*((playerY - 8)>>3) + ((playerX)>>3);
@@ -277,7 +293,7 @@ void main(){
 
 	set_sprite_palette(0,1,&spritePalette[0]); // loading 1 palette of 4 colors
 
-	set_sprite_data(0, 32, PlayerTiles);
+	set_sprite_data(0, 64, PlayerTiles);
 	set_sprite_tile(0, 0);
 	set_sprite_tile(1, 2);
 
@@ -293,6 +309,8 @@ void main(){
 			joydata = joypad();
 
 			movePlayer();
+
+			animatePlayer();
 
 			updateEntityPositions();
 
