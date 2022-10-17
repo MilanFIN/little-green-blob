@@ -71,6 +71,7 @@ uint8_t jumpReleased = 1;
 uint16_t finishTileIndex = 0;
 
 uint16_t hp = 800;
+uint16_t maxHp = 800;
 
 
 //returns true if there is no collision in a point
@@ -82,14 +83,18 @@ inline uint8_t checkCollision(uint8_t x, uint8_t y) {
 
 
 void movePlayer() {
+	uint16_t hatHeight = (hp >> 6) + 3;
+	uint16_t sideEdge = (hp >> 7) + 2;
+
 	if (joydata & J_LEFT) {
-		if (checkCollision(playerX - 8, playerY - 8) && checkCollision(playerX - 8, playerY-1) && checkCollision(playerX - 8, playerY - 15)) {
+
+		if (checkCollision(playerX - sideEdge, playerY - (hatHeight >> 1)) && checkCollision(playerX - sideEdge, playerY-1) && checkCollision(playerX - sideEdge, playerY - hatHeight)) {
 			playerXScaled -= movementSpeed;
 			hp -= 1;
 		}
 	}
 	if (joydata & J_RIGHT) {
-		if (checkCollision(playerX + 8, playerY - 8) && checkCollision(playerX + 8, playerY-1) && checkCollision(playerX + 8, playerY - 15)) {
+		if (checkCollision(playerX + sideEdge, playerY - (hatHeight >> 1)) && checkCollision(playerX + sideEdge, playerY-1) && checkCollision(playerX + sideEdge, playerY - hatHeight)) {
 			playerXScaled += movementSpeed;
 			hp -= 1;
 		}
@@ -101,8 +106,9 @@ void movePlayer() {
 		//player bottom
 		uint8_t newPlayerY = (playerYScaled + ySpeed) >> 3;
 
-		if (checkCollision(playerX, newPlayerY) && checkCollision(playerX+7, newPlayerY) && checkCollision(playerX-7, newPlayerY)) {
+		if (checkCollision(playerX, newPlayerY) && checkCollision(playerX+ sideEdge+1, newPlayerY) && checkCollision(playerX-sideEdge+1, newPlayerY)) {
 			ySpeed += 1;
+			onGround = 0;
 		}
 		else {
 			onGround = 1;
@@ -113,9 +119,9 @@ void movePlayer() {
 
 	if (ySpeed < 0) {
 		//player top
-		uint8_t newPlayerY = ((playerYScaled + ySpeed) >> 3) - 16;
+		uint8_t newPlayerY = ((playerYScaled + ySpeed) >> 3) - hatHeight;
 
-		if (!checkCollision(playerX, newPlayerY) || !checkCollision(playerX+7, newPlayerY) || !checkCollision(playerX-7, newPlayerY)) {
+		if (!checkCollision(playerX, newPlayerY) || !checkCollision(playerX + sideEdge, newPlayerY) || !checkCollision(playerX - sideEdge, newPlayerY)) {
 			ySpeed = 0;
 		}
 		ySpeed += 1;
