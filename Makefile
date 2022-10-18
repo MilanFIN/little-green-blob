@@ -25,13 +25,16 @@ LCCFLAGS += -Wl-j -Wm-yoA -Wm-ya4 -autobank -Wb-ext=.rel -Wb-v # MBC + Autobanki
 # LCCFLAGS += -debug # Uncomment to enable debug output
 # LCCFLAGS += -v     # Uncomment for lcc verbose output
 
+CFLAGS = -Wf-Isrc/graphics -Wa-Isrc/graphics
+CPPFLAGS = -Wf-Iinclude -Wa-Iinclude
+
 # You can set the name of the ROM file here
 PROJECTNAME = main
 
 # EXT?=gb # Only sets extension to default (game boy .gb) if not populated
 SRCDIR      = src
 OBJDIR      = obj/$(EXT)
-RESDIR      = graphics
+RESDIR      = src/graphics
 BINDIR      = build/$(EXT)
 MKDIRS      = $(OBJDIR) $(BINDIR) # See bottom of Makefile for directory auto-creation
 
@@ -50,7 +53,7 @@ $(OBJDIR)/%.o:	$(SRCDIR)/%.c
 	$(LCC) -v $(CFLAGS) $(BOFLAG) $(BAFLAG) -c -o $@ $<
 
 # Compile .c files in "res/" to .o object files
-$(OBJDIR)/%.o:	$(RESDIR)/%.c
+$(OBJDIR)/%.o:	$(RESDIR)/%.c 
 	$(LCC) $(CFLAGS) -c -o $@ $<
 
 # Compile .s assembly files in "src/" to .o object files

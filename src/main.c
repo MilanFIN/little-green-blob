@@ -5,8 +5,19 @@
 #include "tileset.h"
 #include "mapzero.h"
 
-//#include "graphics/playertiles.c"
-#include "playertiles.h"
+//#include "playertiles.h"
+//#include "playerjumptiles.h"
+//#include "test.h"
+
+#include "playertiles0.h"
+#include "playertiles1.h"
+#include "playertiles2.h"
+#include "playertiles3.h"
+#include "playertiles4.h"
+#include "playertiles5.h"
+#include "playertiles6.h"
+#include "playertiles7.h"
+
 
 const UWORD backgroundPalette[] = {
 
@@ -37,10 +48,22 @@ const UWORD backgroundPalette[] = {
 };
 
 const UWORD spritePalette[] = {
-	PlayerTilesSGBPal1c0,
-	PlayerTilesSGBPal1c1,
-	PlayerTilesSGBPal1c2,
-	PlayerTilesSGBPal1c3
+	PlayerTiles0SGBPal1c0,
+	PlayerTiles0CGBPal0c1,
+	PlayerTiles0CGBPal0c2,
+	PlayerTiles0CGBPal0c3
+};
+
+const unsigned char* playerTilesets[] = {
+	PlayerTiles0,
+	PlayerTiles1,
+	PlayerTiles2,
+	PlayerTiles3,
+	PlayerTiles4,
+	PlayerTiles5,
+	PlayerTiles6,
+	PlayerTiles7
+
 };
 
 
@@ -77,6 +100,7 @@ uint8_t playerFrame = 0;
 uint8_t frameCounter = 20;
 const uint8_t ANIMFRAMETIME = 20;
 
+uint8_t previousTile = 0;
 
 //returns true if there is no collision in a point
 inline uint8_t checkCollision(uint8_t x, uint8_t y) {
@@ -113,6 +137,9 @@ void movePlayer() {
 		if (checkCollision(playerX, newPlayerY) && checkCollision(playerX+ sideEdge+1, newPlayerY) && checkCollision(playerX-sideEdge+1, newPlayerY)) {
 			ySpeed += 1;
 			onGround = 0;
+			set_sprite_tile(0, 12);
+			set_sprite_tile(1,  14);
+
 		}
 		else {
 			onGround = 1;
@@ -137,6 +164,8 @@ void movePlayer() {
 			jumping = 1;
 			onGround = 0;
 			jumpReleased = 0;
+			set_sprite_tile(0, 8);
+			set_sprite_tile(1,  10);
 		}
 		else if (jumping < 12 && !onGround ) {
 			jumping += 1;
@@ -158,13 +187,18 @@ void movePlayer() {
 
 
 	uint16_t currentTile = (maxHp - hp) / 100;
+	if (currentTile != previousTile) {
+		set_sprite_data(0, 16, playerTilesets[currentTile]);
+		previousTile = currentTile;
+	}
+	//printf("%d\n", (playerFrame << 1));
 
-
-	set_sprite_tile(0, currentTile*4 + (playerFrame << 5));
-	set_sprite_tile(1, currentTile*4+2 + (playerFrame << 5));
-
-
-
+	
+	if (ySpeed == 0) {
+		set_sprite_tile(0,  (playerFrame << 2));
+		set_sprite_tile(1,  2+ (playerFrame << 2));
+	}
+	
 
 }
 
@@ -287,13 +321,13 @@ void main(){
 	VBK_REG = 1;
 	set_bkg_tiles(0,0, 32, 32, MapZeroPLN1);
 	VBK_REG = 0;
-
 	set_bkg_tiles(0, 0, 32, 32, MapZeroPLN0);
+
 	move_bkg(0,0);
 
-	set_sprite_palette(0,1,&spritePalette[0]); // loading 1 palette of 4 colors
+	set_sprite_palette(0, 1, &spritePalette[0]); // loading 1 palette of 4 colors
 
-	set_sprite_data(0, 64, PlayerTiles);
+	set_sprite_data(0, 16, playerTilesets[0]);
 	set_sprite_tile(0, 0);
 	set_sprite_tile(1, 2);
 
