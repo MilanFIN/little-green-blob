@@ -18,6 +18,8 @@
 #include "playertiles6.h"
 #include "playertiles7.h"
 
+#define MIN(A,B) ((A)<(B)?(A):(B))
+
 
 const UWORD backgroundPalette[] = {
 
@@ -72,8 +74,8 @@ const uint8_t CENTERY = 72;
 
 uint8_t joydata = 0;
 
-uint8_t playerX = 80;
-uint8_t playerY = 50;
+uint16_t playerX = 80;
+uint16_t playerY = 50;
 
 int16_t playerXScaled = 80<<3;
 int16_t playerYScaled = 50<<3;
@@ -102,9 +104,14 @@ const uint8_t ANIMFRAMETIME = 20;
 
 uint8_t previousTile = 0;
 
+uint8_t old_map_pos_x = 255;
+uint8_t old_map_pos_y = 255;
+uint16_t oldXDiff = 0;
+
+
 //returns true if there is no collision in a point
-inline uint8_t checkCollision(uint8_t x, uint8_t y) {
-	uint16_t ind = 32*((y)>>3) + ((x)>>3);
+inline uint8_t checkCollision(uint16_t x, uint16_t y) {
+	uint16_t ind = MapZeroWidth*((y)>>3) + ((x)>>3);
 	return (MapZeroPLN0[ind] != 0x01) ;
 
 }
@@ -127,14 +134,14 @@ void movePlayer() {
 			hp -= 2;
 		}
 	}
-	playerX = (uint8_t) (playerXScaled >> 3);
+	playerX = playerXScaled >> 3;
 
 
 	if (ySpeed >= 0) {
 		//player bottom
-		uint8_t newPlayerY = (playerYScaled + ySpeed) >> 3;
+		uint16_t newPlayerY = (playerYScaled + ySpeed) >> 3;
 
-		if (checkCollision(playerX, newPlayerY) && checkCollision(playerX+ sideEdge+1, newPlayerY) && checkCollision(playerX-sideEdge+1, newPlayerY)) {
+		if (checkCollision(playerX, newPlayerY) && checkCollision(playerX+ sideEdge+1, newPlayerY) && checkCollision(playerX-sideEdge-1, newPlayerY)) {
 			ySpeed += 1;
 			onGround = 0;
 			set_sprite_tile(0, 12);
@@ -150,9 +157,9 @@ void movePlayer() {
 
 	if (ySpeed < 0) {
 		//player top
-		uint8_t newPlayerY = ((playerYScaled + ySpeed) >> 3) - hatHeight;
+		uint16_t newPlayerY = ((playerYScaled + ySpeed) >> 3) - hatHeight;
 
-		if (!checkCollision(playerX, newPlayerY) || !checkCollision(playerX + sideEdge + 1, newPlayerY) || !checkCollision(playerX - sideEdge + 1, newPlayerY)) {
+		if (!checkCollision(playerX, newPlayerY) || !checkCollision(playerX + sideEdge + 1, newPlayerY) || !checkCollision(playerX - sideEdge - 1, newPlayerY)) {
 			ySpeed = 0;
 		}
 		ySpeed += 1;
@@ -179,7 +186,7 @@ void movePlayer() {
 
 
 	playerYScaled += ySpeed;
-	playerY = (uint8_t) (playerYScaled >> 3);
+	playerY = playerYScaled >> 3;
 
 	if (hp > 800) {
 		hp = 800;
@@ -211,8 +218,8 @@ void updateEntityPositions() {
 	if (xDiff < 0) {
 		xDiff = 0;
 	}
-	if (xDiff >= 95) { //map width - 160
-		xDiff = 95;
+	if (xDiff >= 200) { //map width - 160 = (95)
+		xDiff = 200;
 	}
 	if (yDiff < 0) {
 		yDiff = 0;
@@ -225,7 +232,34 @@ void updateEntityPositions() {
 	move_sprite(0, playerX - xDiff, playerY - yDiff);
 	move_sprite(1, playerX - xDiff+8, playerY - yDiff);
 
-	move_bkg(xDiff, yDiff);
+
+
+    // left or right
+    uint8_t map_pos_x = (uint8_t)(xDiff >> 3u);
+	uint8_t map_pos_y = (uint8_t)(yDiff >> 3u);
+	
+	if (map_pos_x != old_map_pos_x) {
+		if (xDiff < oldXDiff) {
+			VBK_REG = 1;
+			set_bkg_submap(map_pos_x, map_pos_y, 1, MIN(19u, MapZeroHeight - map_pos_y), MapZeroPLN1, MapZeroWidth);     
+			VBK_REG = 0;
+			set_bkg_submap(map_pos_x, map_pos_y, 1, MIN(19u, MapZeroHeight - map_pos_y), MapZeroPLN0, MapZeroWidth);     
+		} else {
+			if ((MapZeroWidth - 20u) > map_pos_x) {
+				VBK_REG = 1;
+				set_bkg_submap(map_pos_x + 20u, map_pos_y, 1, MIN(19u, MapZeroHeight - map_pos_y), MapZeroPLN1, MapZeroWidth);   
+				VBK_REG = 0;
+				set_bkg_submap(map_pos_x + 20u, map_pos_y, 1, MIN(19u, MapZeroHeight - map_pos_y), MapZeroPLN0, MapZeroWidth);   
+			}   
+		}
+    }
+	
+	old_map_pos_x = map_pos_x;
+	old_map_pos_y = map_pos_y;
+
+    SCX_REG = xDiff; SCY_REG = yDiff; 
+
+	//move_bkg(xDiff, yDiff);
 
 }
 
@@ -238,7 +272,7 @@ void moveToLevelStart() {
 			break;
 		}
 		for (x = 0; x < 32; x++) {
-			uint16_t ind = 32*y + x;
+			uint16_t ind = MapZeroWidth*y + x;
 			if (MapZeroPLN0[ind] == 0x04) {
 				shouldBreak = 1;
 				break;
@@ -319,11 +353,15 @@ void main(){
 	set_bkg_data(0, 6, Tileset); 
 
 	VBK_REG = 1;
-	set_bkg_tiles(0,0, 32, 32, MapZeroPLN1);
+	//set_bkg_tiles(0,0, 32, 32, MapZeroPLN1);
+	set_bkg_submap(0, 0, 20, 18, MapZeroPLN1, MapZeroWidth);
 	VBK_REG = 0;
-	set_bkg_tiles(0, 0, 32, 32, MapZeroPLN0);
+	//set_bkg_tiles(0, 0, 32, 32, MapZeroPLN0);
+	//move_bkg(0,0);
 
-	move_bkg(0,0);
+
+	set_bkg_submap(0, 0, 20, 18, MapZeroPLN0, MapZeroWidth);
+
 
 	set_sprite_palette(0, 1, &spritePalette[0]); // loading 1 palette of 4 colors
 

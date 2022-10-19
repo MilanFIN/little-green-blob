@@ -7,7 +7,7 @@
  Info:
    Section       : 
    Bank          : 0
-   Map size      : 32 x 32
+   Map size      : 50 x 32
    Tile set      : Z:\home\milan\Documents\gameboy\splat\src\maps\tileset.gbr
    Plane count   : 2 planes (16 bits)
    Plane order   : Planes are continues
@@ -20,7 +20,7 @@
 #ifndef __mapzero_h_INCLUDE
 #define __mapzero_h_INCLUDE
 
-#define MapZeroWidth 32
+#define MapZeroWidth 50
 #define MapZeroHeight 32
 #define MapZeroBank 0
 
