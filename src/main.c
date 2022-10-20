@@ -107,6 +107,7 @@ uint8_t previousTile = 0;
 uint8_t old_map_pos_x = 255;
 uint8_t old_map_pos_y = 255;
 uint16_t oldXDiff = 0;
+uint16_t oldYDiff = 0;
 
 
 //returns true if there is no collision in a point
@@ -234,10 +235,10 @@ void updateEntityPositions() {
 
 
 
-    // left or right
     uint8_t map_pos_x = (uint8_t)(xDiff >> 3u);
 	uint8_t map_pos_y = (uint8_t)(yDiff >> 3u);
 	
+	//x direction
 	if (map_pos_x != old_map_pos_x) {
 		if (xDiff < oldXDiff) {
 			VBK_REG = 1;
@@ -252,14 +253,37 @@ void updateEntityPositions() {
 				set_bkg_submap(map_pos_x + 20u, map_pos_y, 1, MIN(19u, MapZeroHeight - map_pos_y), MapZeroPLN0, MapZeroWidth);   
 			}   
 		}
+		old_map_pos_x = map_pos_x;
+		oldXDiff = xDiff;
     }
+
+	//y direction
+
+	if (map_pos_y != old_map_pos_y) { 
+		if (yDiff < oldYDiff) {
+			VBK_REG = 1;
+			set_bkg_submap(map_pos_x, map_pos_y, MIN(21u, MapZeroWidth-map_pos_x), 1, MapZeroPLN1, MapZeroWidth);
+			VBK_REG = 0;
+			set_bkg_submap(map_pos_x, map_pos_y, MIN(21u, MapZeroWidth-map_pos_x), 1, MapZeroPLN0, MapZeroWidth);
+
+		} 
+		else {
+			if ((MapZeroHeight - 18u) > map_pos_y) {
+				VBK_REG = 1;
+				set_bkg_submap(map_pos_x, map_pos_y + 18u, MIN(21u, MapZeroWidth-map_pos_x), 1, MapZeroPLN1, MapZeroWidth); 
+				VBK_REG = 0;
+				set_bkg_submap(map_pos_x, map_pos_y + 18u, MIN(21u, MapZeroWidth-map_pos_x), 1, MapZeroPLN0, MapZeroWidth); 
+			}   
+		}
+		old_map_pos_y = map_pos_y;
+		oldYDiff = yDiff;
+
+    }
+
 	
-	old_map_pos_x = map_pos_x;
-	old_map_pos_y = map_pos_y;
 
     SCX_REG = xDiff; SCY_REG = yDiff; 
 
-	//move_bkg(xDiff, yDiff);
 
 }
 
@@ -267,11 +291,11 @@ void moveToLevelStart() {
 	uint16_t x = 0;
 	uint16_t y = 0;
 	uint8_t shouldBreak = 0;
-	for (y = 0; y < 32; y++) {
+	for (y = 0; y < MapZeroHeight; y++) {
 		if (shouldBreak) {
 			break;
 		}
-		for (x = 0; x < 32; x++) {
+		for (x = 0; x < MapZeroWidth; x++) {
 			uint16_t ind = MapZeroWidth*y + x;
 			if (MapZeroPLN0[ind] == 0x04) {
 				shouldBreak = 1;
@@ -317,7 +341,7 @@ void animatePlayer() {
 
 //1 if finished, 0 otherwise
 uint8_t checkFinish() {
-	uint16_t ind = 32*((playerY - 8)>>3) + ((playerX)>>3);
+	uint16_t ind = MapZeroWidth*((playerY - 8)>>3) + ((playerX)>>3);
 
 	if (ind == finishTileIndex) {
 		return 1;
