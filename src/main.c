@@ -219,14 +219,15 @@ void updateEntityPositions() {
 	if (xDiff < 0) {
 		xDiff = 0;
 	}
-	if (xDiff >= 200) { //map width - 160 = (95)
-		xDiff = 200;
+	//printf("%d\n", (MapZeroWidth << 3) - 160);
+	if (xDiff > (MapZeroWidth << 3) - 160) { //map width - 160 = (95)
+		xDiff = (MapZeroWidth << 3) - 160;
 	}
 	if (yDiff < 0) {
 		yDiff = 0;
 	}
-	if (yDiff >= 95) {
-		yDiff = 95;
+	if (yDiff > (MapZeroHeight << 3) - 144) { 
+		yDiff = (MapZeroHeight << 3) - 144;
 	}
 
 
