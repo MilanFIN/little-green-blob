@@ -21,6 +21,10 @@
 #define MIN(A,B) ((A)<(B)?(A):(B))
 
 
+//TODO: korjaa kartan init siirto kun pääsee maaliin
+//logo kikkailua tms
+
+
 const unsigned char FLOORTILES[2] = {0x01, 0x06}; 
 const uint8_t FLOORTILECOUNT = 2;
 const unsigned char ROOFTILES[1] = {0x01}; 
@@ -280,7 +284,6 @@ void updateEntityPositions() {
     }
 
 	//y direction
-
 	if (map_pos_y != old_map_pos_y) { 
 		if (yDiff < oldYDiff) {
 			VBK_REG = 1;
@@ -310,8 +313,19 @@ void updateEntityPositions() {
 }
 
 void moveToLevelStart() {
+
+
+
 	uint16_t x = 0;
 	uint16_t y = 0;
+
+	VBK_REG = 1;
+	set_bkg_submap(0, 0, 20, 18, MapZeroPLN1, MapZeroWidth);
+	VBK_REG = 0;
+	set_bkg_submap(0, 0, 20, 18, MapZeroPLN0, MapZeroWidth);
+
+
+
 	uint8_t shouldBreak = 0;
 	for (y = 0; y < MapZeroHeight; y++) {
 		if (shouldBreak) {
@@ -333,12 +347,12 @@ void moveToLevelStart() {
 	playerY = y;
 
 	shouldBreak = 0;
-	for (uint16_t j = 0; j < 32; j++) {
+	for (uint16_t j = 0; j < MapZeroHeight; j++) {
 		if (shouldBreak) {
 			break;
 		}
-		for (uint16_t i = 0; i < 32; i++) {
-			uint16_t ind = 32*j + i;
+		for (uint16_t i = 0; i < MapZeroWidth; i++) {
+			uint16_t ind = MapZeroHeight*j + i;
 			if (MapZeroPLN0[ind] == 0x05) {
 				finishTileIndex = ind;
 				shouldBreak = 1;
