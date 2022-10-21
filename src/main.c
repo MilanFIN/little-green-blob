@@ -21,6 +21,12 @@
 #define MIN(A,B) ((A)<(B)?(A):(B))
 
 
+const unsigned char FLOORTILES[2] = {0x01, 0x06}; 
+const uint8_t FLOORTILECOUNT = 2;
+const unsigned char ROOFTILES[1] = {0x01}; 
+const uint8_t ROOFTILECOUNT = 1;
+
+
 const UWORD backgroundPalette[] = {
 
 	TilesetCGBPal0c0,
@@ -111,10 +117,25 @@ uint16_t oldYDiff = 0;
 
 
 //returns true if there is no collision in a point
-inline uint8_t checkCollision(uint16_t x, uint16_t y) {
+inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
 	uint16_t ind = MapZeroWidth*((y)>>3) + ((x)>>3);
-	return (MapZeroPLN0[ind] != 0x01) ;
-
+	uint8_t floor = 0;
+	for (uint8_t i=0; i < FLOORTILECOUNT; i++) {
+		if (MapZeroPLN0[ind] == FLOORTILES[i]) {
+			floor = 1;
+		} 
+	}
+	return !floor ;
+}
+inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
+	uint16_t ind = MapZeroWidth*((y)>>3) + ((x)>>3);
+	uint8_t roof = 0;
+	for (uint8_t i=0; i < ROOFTILECOUNT; i++) {
+		if (MapZeroPLN0[ind] == ROOFTILES[i]) {
+			roof = 1;
+		} 
+	}
+	return !roof ;
 }
 
 
@@ -124,13 +145,13 @@ void movePlayer() {
 
 	if (joydata & J_LEFT) {
 
-		if (checkCollision(playerX - sideEdge, playerY - (hatHeight >> 1)) && checkCollision(playerX - sideEdge, playerY-1) && checkCollision(playerX - sideEdge, playerY - hatHeight)) {
+		if (checkRoofCollision(playerX - sideEdge, playerY - (hatHeight >> 1)) && checkRoofCollision(playerX - sideEdge, playerY-1) && checkRoofCollision(playerX - sideEdge, playerY - hatHeight)) {
 			playerXScaled -= movementSpeed;
 			hp -= 2;
 		}
 	}
 	if (joydata & J_RIGHT) {
-		if (checkCollision(playerX + sideEdge, playerY - (hatHeight >> 1)) && checkCollision(playerX + sideEdge, playerY-1) && checkCollision(playerX + sideEdge, playerY - hatHeight)) {
+		if (checkRoofCollision(playerX + sideEdge, playerY - (hatHeight >> 1)) && checkRoofCollision(playerX + sideEdge, playerY-1) && checkRoofCollision(playerX + sideEdge, playerY - hatHeight)) {
 			playerXScaled += movementSpeed;
 			hp -= 2;
 		}
@@ -142,7 +163,7 @@ void movePlayer() {
 		//player bottom
 		uint16_t newPlayerY = (playerYScaled + ySpeed) >> 3;
 
-		if (checkCollision(playerX, newPlayerY) && checkCollision(playerX+ sideEdge+1, newPlayerY) && checkCollision(playerX-sideEdge-1, newPlayerY)) {
+		if (checkFloorCollision(playerX, newPlayerY) && checkFloorCollision(playerX+ sideEdge -1, newPlayerY) && checkFloorCollision(playerX-sideEdge + 1, newPlayerY)) {
 			ySpeed += 1;
 			onGround = 0;
 			set_sprite_tile(0, 12);
@@ -160,7 +181,7 @@ void movePlayer() {
 		//player top
 		uint16_t newPlayerY = ((playerYScaled + ySpeed) >> 3) - hatHeight;
 
-		if (!checkCollision(playerX, newPlayerY) || !checkCollision(playerX + sideEdge + 1, newPlayerY) || !checkCollision(playerX - sideEdge - 1, newPlayerY)) {
+		if (!checkRoofCollision(playerX, newPlayerY) || !checkRoofCollision(playerX + sideEdge - 1, newPlayerY) || !checkRoofCollision(playerX - sideEdge + 1, newPlayerY)) {
 			ySpeed = 0;
 		}
 		ySpeed += 1;
@@ -375,7 +396,7 @@ void main(){
 
 	set_bkg_palette(0, 5, &backgroundPalette[0]);
 
-	set_bkg_data(0, 6, Tileset); 
+	set_bkg_data(0, 7, Tileset); 
 
 	VBK_REG = 1;
 	//set_bkg_tiles(0,0, 32, 32, MapZeroPLN1);
