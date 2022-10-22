@@ -29,6 +29,9 @@ const unsigned char FLOORTILES[2] = {0x01, 0x06};
 const uint8_t FLOORTILECOUNT = 2;
 const unsigned char ROOFTILES[1] = {0x01}; 
 const uint8_t ROOFTILECOUNT = 1;
+const unsigned char OBSTACLETILES[1] = {0x07};
+const uint8_t OBSTACLECOUNT = 1;
+
 
 
 const UWORD backgroundPalette[] = {
@@ -105,8 +108,8 @@ uint8_t jumpReleased = 1;
 // initialized during level load
 uint16_t finishTileIndex = 0;
 
-uint16_t hp = 800;
-uint16_t maxHp = 800;
+int16_t hp = 800;
+int16_t maxHp = 800;
 
 uint8_t playerFrame = 0;
 uint8_t frameCounter = 20;
@@ -118,7 +121,18 @@ uint8_t old_map_pos_x = 255;
 uint8_t old_map_pos_y = 255;
 uint16_t oldXDiff = 0;
 uint16_t oldYDiff = 0;
+uint16_t onScreenX = 0;
+uint16_t onScreenY = 0;
 
+inline uint8_t uClamp( uint8_t value, uint8_t min, uint8_t max )
+{
+    return (value < min) ? min : (value > max) ? max : value;
+}
+
+inline uint16_t u16Clamp( uint16_t value, uint16_t min, uint16_t max )
+{
+    return (value < min) ? min : (value > max) ? max : value;
+}
 
 //returns true if there is no collision in a point
 inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
@@ -141,6 +155,18 @@ inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 	}
 	return !roof ;
 }
+//returns 1, if player should stay alive
+inline uint8_t checkObstacleCollision(uint16_t x, uint16_t y) {
+	uint16_t ind = MapZeroWidth*((y)>>3) + ((x)>>3);
+	uint8_t dead = 0;
+	for (uint8_t i=0; i < OBSTACLECOUNT; i++) {
+		if (MapZeroPLN0[ind] == OBSTACLETILES[i]) {
+			dead = 1;
+		} 
+	}
+	return !dead ;
+}
+
 
 
 void movePlayer() {
@@ -214,12 +240,10 @@ void movePlayer() {
 	playerYScaled += ySpeed;
 	playerY = playerYScaled >> 3;
 
-	if (hp > 800) {
-		hp = 800;
-	}
 
 
 	uint16_t currentTile = (maxHp - hp) / 100;
+	currentTile = u16Clamp(currentTile,0, 7);
 	if (currentTile != previousTile) {
 		set_sprite_data(0, 16, playerTilesets[currentTile]);
 		previousTile = currentTile;
@@ -230,6 +254,14 @@ void movePlayer() {
 	if (ySpeed == 0) {
 		set_sprite_tile(0,  (playerFrame << 2));
 		set_sprite_tile(1,  2+ (playerFrame << 2));
+	}
+
+	if (!checkObstacleCollision(playerX - sideEdge, playerY - (hatHeight >> 1))
+		|| !checkObstacleCollision(playerX - sideEdge, playerY-1) 
+		|| !checkObstacleCollision(playerX + sideEdge, playerY - (hatHeight >> 1))
+		|| !checkObstacleCollision(playerX + sideEdge, playerY-1) )
+	{
+		hp = 0;
 	}
 	
 
@@ -255,9 +287,11 @@ void updateEntityPositions() {
 		yDiff = (MapZeroHeight << 3) - 144;
 	}
 
+	onScreenX = playerX - xDiff;
+	onScreenY = playerY - yDiff;
 
-	move_sprite(0, playerX - xDiff, playerY - yDiff);
-	move_sprite(1, playerX - xDiff+8, playerY - yDiff);
+	move_sprite(0, onScreenX, onScreenY);
+	move_sprite(1, onScreenX + 8, onScreenY);
 
 
 
@@ -312,9 +346,9 @@ void updateEntityPositions() {
 
 }
 
-void moveToLevelStart() {
+void startLevel() {
 
-
+	hp = maxHp;
 
 	uint16_t x = 0;
 	uint16_t y = 0;
@@ -387,6 +421,19 @@ uint8_t checkFinish() {
 	}
 }
 
+void playDeathAnimation() {
+	for(uint8_t i = 0; i < 5;i++) {
+		move_sprite(0, 200, 200);
+		move_sprite(1, 200, 200);
+		wait_vbl_done();
+		delay(100);
+		move_sprite(0, onScreenX, onScreenY);
+		move_sprite(1, onScreenX+8, onScreenY);
+		wait_vbl_done();
+		delay(100);
+	}
+}
+
 
 void main(){
 
@@ -410,7 +457,7 @@ void main(){
 
 	set_bkg_palette(0, 5, &backgroundPalette[0]);
 
-	set_bkg_data(0, 7, Tileset); 
+	set_bkg_data(0, 8, Tileset); 
 
 	VBK_REG = 1;
 	//set_bkg_tiles(0,0, 32, 32, MapZeroPLN1);
@@ -434,7 +481,7 @@ void main(){
 
 	while(1) {
 
-		moveToLevelStart();
+		startLevel();
 
 		while(1) {
 
@@ -447,6 +494,11 @@ void main(){
 			updateEntityPositions();
 
 			if (checkFinish()) {
+				break;
+			}
+
+			if (hp <= 0) {
+				playDeathAnimation();
 				break;
 			}
 
