@@ -94,10 +94,23 @@ int16_t playerXScaled = 80<<3;
 int16_t playerYScaled = 50<<3;
 
 
-int16_t movementSpeed = 8;
+
+const int16_t groundAcceleration = 16;
+const int16_t airAcceleration = 4;
+//scaled by factor of 2^3 = 8
+int16_t xSpeed = 0;
+const int16_t maxXSpeed = 64;
 
 //positive when going down
+// scaled by factor of 2^3 = 8
 int16_t ySpeed = 0;
+const int16_t AIRGRAVITY = 8;
+const int16_t WATERFALLSPEEDLIMIT = 32;
+//initial jump power
+const int16_t JUMPPOWER = 80;
+//how much holding A will affect jump height
+int16_t JUMPCARRY = 16;
+
 
 
 uint8_t onGround = 0;
@@ -129,10 +142,16 @@ inline uint8_t uClamp( uint8_t value, uint8_t min, uint8_t max )
     return (value < min) ? min : (value > max) ? max : value;
 }
 
+inline int16_t i16Clamp( int16_t value, int16_t min, int16_t max )
+{
+    return (value < min) ? min : (value > max) ? max : value;
+}
+
 inline uint16_t u16Clamp( uint16_t value, uint16_t min, uint16_t max )
 {
     return (value < min) ? min : (value > max) ? max : value;
 }
+
 
 //returns true if there is no collision in a point
 inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
@@ -167,34 +186,86 @@ inline uint8_t checkObstacleCollision(uint16_t x, uint16_t y) {
 	return !dead ;
 }
 
+inline void addGravity() {
+	uint16_t ind = MapZeroWidth*((playerY - 8)>>3) + ((playerX)>>3);
+	ySpeed += AIRGRAVITY;
+
+	
+	if (MapZeroPLN0[ind] == 0x02 || MapZeroPLN0[ind] == 0x03 ) {
+		//ySpeed = i16Clamp(ySpeed, -WATERFALLSPEEDLIMIT, WATERFALLSPEEDLIMIT);
+		if (ySpeed > WATERFALLSPEEDLIMIT) {
+			ySpeed = WATERFALLSPEEDLIMIT;
+		}
+	}
+}
+
 
 
 void movePlayer() {
 	uint16_t hatHeight = (hp >> 6) + 3;
 	uint16_t sideEdge = (hp >> 7) + 2;
 
+	int16_t acceleration = (onGround) ? groundAcceleration : airAcceleration;
+
 	if (joydata & J_LEFT) {
 
+			xSpeed -= acceleration;
+			hp -= 2;
+	}
+	else if (joydata & J_RIGHT) {
+			xSpeed += acceleration;
+			hp -= 2;
+	}
+	else {
+		if (xSpeed > 0) {
+			if (xSpeed < acceleration) {
+				xSpeed = 0;
+			}
+			else {
+				xSpeed -= acceleration;
+			}
+		}
+		if (xSpeed < 0) {
+			if (xSpeed > acceleration) {
+				xSpeed = 0;
+			}
+			else {
+				xSpeed += acceleration;
+			}
+		}
+	}
+	xSpeed = i16Clamp(xSpeed, -maxXSpeed, maxXSpeed);
+
+
+	if (xSpeed < 0) {
 		if (checkRoofCollision(playerX - sideEdge, playerY - (hatHeight >> 1)) && checkRoofCollision(playerX - sideEdge, playerY-1) && checkRoofCollision(playerX - sideEdge, playerY - hatHeight)) {
-			playerXScaled -= movementSpeed;
-			hp -= 2;
+			playerXScaled += -((-xSpeed) >> 3);
+		}
+		else {
+			xSpeed = 0;
 		}
 	}
-	if (joydata & J_RIGHT) {
+	if (xSpeed > 0) {
 		if (checkRoofCollision(playerX + sideEdge, playerY - (hatHeight >> 1)) && checkRoofCollision(playerX + sideEdge, playerY-1) && checkRoofCollision(playerX + sideEdge, playerY - hatHeight)) {
-			playerXScaled += movementSpeed;
-			hp -= 2;
+			playerXScaled += xSpeed >> 3;
+		}
+		else {
+			xSpeed = 0;
 		}
 	}
+
+
+
 	playerX = playerXScaled >> 3;
 
 
 	if (ySpeed >= 0) {
 		//player bottom
-		uint16_t newPlayerY = (playerYScaled + ySpeed) >> 3;
+		uint16_t newPlayerY = (playerYScaled + (ySpeed>>3)) >> 3;
 
 		if (checkFloorCollision(playerX, newPlayerY) && checkFloorCollision(playerX+ sideEdge -1, newPlayerY) && checkFloorCollision(playerX-sideEdge + 1, newPlayerY)) {
-			ySpeed += 1;
+			addGravity();
+			
 			onGround = 0;
 			set_sprite_tile(0, 12);
 			set_sprite_tile(1,  14);
@@ -209,17 +280,17 @@ void movePlayer() {
 
 	if (ySpeed < 0) {
 		//player top
-		uint16_t newPlayerY = ((playerYScaled + ySpeed) >> 3) - hatHeight;
+		uint16_t newPlayerY = ((playerYScaled + (ySpeed>>3)) >> 3) - hatHeight;
 
 		if (!checkRoofCollision(playerX, newPlayerY) || !checkRoofCollision(playerX + sideEdge - 1, newPlayerY) || !checkRoofCollision(playerX - sideEdge + 1, newPlayerY)) {
 			ySpeed = 0;
 		}
-		ySpeed += 1;
+		addGravity();
 	}
 
 	if (joydata & J_A) {
 		if (onGround && !jumping && jumpReleased) {
-			ySpeed = -10;
+			ySpeed = -JUMPPOWER;
 			jumping = 1;
 			onGround = 0;
 			jumpReleased = 0;
@@ -228,7 +299,7 @@ void movePlayer() {
 		}
 		else if (jumping < 12 && !onGround ) {
 			jumping += 1;
-			ySpeed -= 2;
+			ySpeed -= JUMPCARRY;
 		}
 	} else {
 		jumpReleased = 1;
@@ -237,7 +308,7 @@ void movePlayer() {
 
 
 
-	playerYScaled += ySpeed;
+	playerYScaled += ySpeed >> 3;
 	playerY = playerYScaled >> 3;
 
 
