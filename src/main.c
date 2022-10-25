@@ -17,12 +17,17 @@
 #include "playertiles5.h"
 #include "playertiles6.h"
 #include "playertiles7.h"
+#include "projectile.h"
+
+#include "projectileholder.h"
 
 #define MIN(A,B) ((A)<(B)?(A):(B))
 
 
 //TODO: korjaa kartan init siirto kun pääsee maaliin
 //logo kikkailua tms
+
+//nopeuden skaalaus kusee 
 
 
 const unsigned char FLOORTILES[2] = {0x01, 0x06}; 
@@ -69,6 +74,13 @@ const UWORD spritePalette[] = {
 	PlayerTiles0CGBPal0c3
 };
 
+const UWORD projectilePalette[] = {
+	ProjectileCGBPal0c0,
+	ProjectileCGBPal0c1,
+	ProjectileCGBPal0c2,
+	ProjectileCGBPal0c3
+};
+
 const unsigned char* playerTilesets[] = {
 	PlayerTiles0,
 	PlayerTiles1,
@@ -86,6 +98,8 @@ const uint8_t CENTERX = 80;
 const uint8_t CENTERY = 72;
 
 uint8_t joydata = 0;
+uint8_t previousJoydata = 0;
+
 
 uint16_t playerX = 80;
 uint16_t playerY = 50;
@@ -93,6 +107,8 @@ uint16_t playerY = 50;
 int16_t playerXScaled = 80<<3;
 int16_t playerYScaled = 50<<3;
 
+//where player is facing toward
+int8_t xDir = 1;
 
 
 const int16_t groundAcceleration = 16;
@@ -137,6 +153,11 @@ uint16_t oldYDiff = 0;
 uint16_t onScreenX = 0;
 uint16_t onScreenY = 0;
 
+struct ProjectileObj projectile = {
+	0,0,0,0,0, 2
+};
+
+
 inline uint8_t uClamp( uint8_t value, uint8_t min, uint8_t max )
 {
     return (value < min) ? min : (value > max) ? max : value;
@@ -150,6 +171,11 @@ inline int16_t i16Clamp( int16_t value, int16_t min, int16_t max )
 inline uint16_t u16Clamp( uint16_t value, uint16_t min, uint16_t max )
 {
     return (value < min) ? min : (value > max) ? max : value;
+}
+
+inline int16_t i16abs(int16_t value) {
+	if (value >= 0) return value;
+	else return - value;
 }
 
 
@@ -208,11 +234,12 @@ void movePlayer() {
 	int16_t acceleration = (onGround) ? groundAcceleration : airAcceleration;
 
 	if (joydata & J_LEFT) {
-
+			xDir = -1;
 			xSpeed -= acceleration;
 			hp -= 2;
 	}
 	else if (joydata & J_RIGHT) {
+			xDir = 1;
 			xSpeed += acceleration;
 			hp -= 2;
 	}
@@ -357,12 +384,21 @@ void updateEntityPositions() {
 	if (yDiff > (MapZeroHeight << 3) - 144) { 
 		yDiff = (MapZeroHeight << 3) - 144;
 	}
-
+	//player positions
 	onScreenX = playerX - xDiff;
 	onScreenY = playerY - yDiff;
-
 	move_sprite(0, onScreenX, onScreenY);
 	move_sprite(1, onScreenX + 8, onScreenY);
+
+
+	if (projectile.active) {
+		//projectile positions
+		uint16_t projectileScreenX = projectile.x - xDiff;
+		uint16_t projectileScreenY = projectile.y - yDiff;
+		move_sprite(2, projectileScreenX, projectileScreenY +4);
+	}
+
+
 
 
 
@@ -505,6 +541,42 @@ void playDeathAnimation() {
 	}
 }
 
+void fire() {
+	projectile.active = 1;
+	projectile.x = playerX + 4;
+	projectile.y = playerY - 8;
+	projectile.scaledX = (playerX + 4)<<3;
+	projectile.scaledY = (playerY -8)<<3;
+
+	//TODO: korjaa nopeuden skaalaus
+	if (xDir > 0) {
+		projectile.xSpeed = 20 + xSpeed;
+	}
+	if (xDir < 0) {
+		projectile.xSpeed = -20 + xSpeed;
+	}
+	projectile.ySpeed = -80 + ySpeed;
+}
+
+void moveProjectiles() {
+	projectile.scaledX += projectile.xSpeed;
+
+	projectile.ySpeed += AIRGRAVITY ;
+
+	projectile.scaledY += projectile.ySpeed >> 3;
+
+	projectile.x = projectile.scaledX >> 3;
+	projectile.y = projectile.scaledY >> 3;
+
+	
+	if  (i16abs(playerX - projectile.x) > 200 || i16abs(playerY - projectile.y) > 200) {
+		projectile.active = 0;
+		move_sprite(projectile.tile, 200, 200);
+	}
+	
+	
+}
+
 
 void main(){
 
@@ -544,11 +616,21 @@ void main(){
 	set_sprite_palette(0, 1, &spritePalette[0]); // loading 1 palette of 4 colors
 
 	set_sprite_data(0, 16, playerTilesets[0]);
+
+
+	set_sprite_data(16, 2, Projectile);
+	set_sprite_palette(1, 1, &projectilePalette[0]);
+
+
 	set_sprite_tile(0, 0);
 	set_sprite_tile(1, 2);
 
 	set_sprite_prop(0,0); //loading 0th palette
 	set_sprite_prop(1,0); //also 0th
+
+	set_sprite_tile(2, 0x10);
+	set_sprite_prop(2,1); //also 0th
+	move_sprite(2, 100, 100);
 
 	while(1) {
 
@@ -556,11 +638,18 @@ void main(){
 
 		while(1) {
 
+			previousJoydata = joydata;
 			joydata = joypad();
 
 			movePlayer();
 
 			animatePlayer();
+
+			if (joydata & J_B && !(previousJoydata & J_B)) {
+				fire();
+			}
+
+			moveProjectiles();
 
 			updateEntityPositions();
 
@@ -574,6 +663,7 @@ void main(){
 			}
 
 			wait_vbl_done();
+			
 
 		}
 

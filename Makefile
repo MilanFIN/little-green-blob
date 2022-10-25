@@ -25,7 +25,7 @@ LCCFLAGS += -Wl-j -Wm-yoA -Wm-ya4 -autobank -Wb-ext=.rel -Wb-v # MBC + Autobanki
 # LCCFLAGS += -debug # Uncomment to enable debug output
 # LCCFLAGS += -v     # Uncomment for lcc verbose output
 
-CFLAGS = -Wf-Isrc/graphics -Wa-Isrc/graphics
+CFLAGS = -Wf-Isrc/graphics -Wa-Isrc/graphics  -Wf-Isrc/structs -Wa-Isrc/structs
 CPPFLAGS = -Wf-Iinclude -Wa-Iinclude
 
 # You can set the name of the ROM file here
@@ -35,11 +35,14 @@ PROJECTNAME = main
 SRCDIR      = src
 OBJDIR      = obj/$(EXT)
 RESDIR      = src/graphics
+STRUCTDIR   = src/structs
+
 BINDIR      = build/$(EXT)
 MKDIRS      = $(OBJDIR) $(BINDIR) # See bottom of Makefile for directory auto-creation
 
 BINS	    = $(OBJDIR)/$(PROJECTNAME).$(EXT)
-CSOURCES    = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.c))) $(foreach dir,$(RESDIR),$(notdir $(wildcard $(dir)/*.c)))
+CSOURCES    = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.c))) $(foreach dir,$(RESDIR),$(notdir $(wildcard $(dir)/*.c))) 
+CSOURCES	+= $(foreach dir,$(STRUCTDIR),$(notdir $(wildcard $(dir)/*.c)))
 ASMSOURCES  = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.s)))
 OBJS        = $(CSOURCES:%.c=$(OBJDIR)/%.o) $(ASMSOURCES:%.s=$(OBJDIR)/%.o)
 
@@ -52,9 +55,13 @@ $(OBJDIR)/%.o:	$(SRCDIR)/%.c
 	$(eval BAFLAG = $(shell echo "$<" | sed -n 's/.*\.ba\([0-9]\+\).*/\-Wf-ba\1/p'))
 	$(LCC) -v $(CFLAGS) $(BOFLAG) $(BAFLAG) -c -o $@ $<
 
-# Compile .c files in "res/" to .o object files
-$(OBJDIR)/%.o:	$(RESDIR)/%.c 
+# Compile .c files in "graphics/" to .o object files
+$(OBJDIR)/%.o:	$(RESDIR)/%.c  $(STRUCTDIR)/%.c 
 	$(LCC) $(CFLAGS) -c -o $@ $<
+
+# Compile .c files in "structs/" to .o object files
+#$(OBJDIR)/%.o:	$(STRUCTDIR)/%.c 
+#	$(LCC) $(CFLAGS) -c -o $@ $<
 
 # Compile .s assembly files in "src/" to .o object files
 $(OBJDIR)/%.o:	$(SRCDIR)/%.s
