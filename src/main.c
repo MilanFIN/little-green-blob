@@ -39,8 +39,7 @@ const uint8_t OBSTACLECOUNT = 1;
 
 
 
-const UWORD backgroundPalette[] = {
-
+const UWORD primaryBackgroundPalette[] = {
 	TilesetCGBPal0c0,
 	TilesetCGBPal0c1,
 	TilesetCGBPal0c2,
@@ -59,13 +58,32 @@ const UWORD backgroundPalette[] = {
 	TilesetCGBPal3c0,
 	TilesetCGBPal3c1,
 	TilesetCGBPal3c2,
+	TilesetCGBPal3c3,};
+
+//switching colors when necessary
+const UWORD secondaryBackgroundPalette[] = {
+	TilesetCGBPal0c0,
+	TilesetCGBPal0c1,
+	TilesetCGBPal0c2,
+	TilesetCGBPal0c3,
+
+	TilesetCGBPal1c0,
+	TilesetCGBPal1c1,
+	TilesetCGBPal1c2,
+	TilesetCGBPal1c3,
+
+	TilesetCGBPal3c0,
+	TilesetCGBPal3c1,
+	TilesetCGBPal3c2,
 	TilesetCGBPal3c3,
 
-	TilesetCGBPal4c0,
-	TilesetCGBPal4c1,
-	TilesetCGBPal4c2,
-	TilesetCGBPal4c3
+	TilesetCGBPal2c0,
+	TilesetCGBPal2c1,
+	TilesetCGBPal2c2,
+	TilesetCGBPal2c3,
+
 };
+
 
 const UWORD spritePalette[] = {
 	PlayerTiles0SGBPal1c0,
@@ -92,6 +110,10 @@ const unsigned char* playerTilesets[] = {
 	PlayerTiles7
 
 };
+
+//
+uint8_t currentBkgPalette = 0;
+
 
 
 const uint8_t CENTERX = 80;
@@ -598,17 +620,15 @@ void main(){
 	SHOW_BKG;
 
 
-	set_bkg_palette(0, 5, &backgroundPalette[0]);
+	set_bkg_palette(0, 4, &primaryBackgroundPalette[0]);
 
-	set_bkg_data(0, 8, Tileset); 
+	set_bkg_data(0, 10, Tileset); 
 
 	VBK_REG = 1;
 	//set_bkg_tiles(0,0, 32, 32, MapZeroPLN1);
 	set_bkg_submap(0, 0, 20, 18, MapZeroPLN1, MapZeroWidth);
 	VBK_REG = 0;
 	//set_bkg_tiles(0, 0, 32, 32, MapZeroPLN0);
-	//move_bkg(0,0);
-
 
 	set_bkg_submap(0, 0, 20, 18, MapZeroPLN0, MapZeroWidth);
 
@@ -647,6 +667,15 @@ void main(){
 
 			if (joydata & J_B && !(previousJoydata & J_B)) {
 				fire();
+
+				if (currentBkgPalette) {
+					set_bkg_palette(0, 4, &primaryBackgroundPalette[0]);
+					currentBkgPalette = 0;
+				}
+				else {
+					set_bkg_palette(0, 4, &secondaryBackgroundPalette[0]);
+					currentBkgPalette = 1;
+				}
 			}
 
 			moveProjectiles();

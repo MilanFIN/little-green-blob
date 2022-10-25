@@ -56,12 +56,12 @@ $(OBJDIR)/%.o:	$(SRCDIR)/%.c
 	$(LCC) -v $(CFLAGS) $(BOFLAG) $(BAFLAG) -c -o $@ $<
 
 # Compile .c files in "graphics/" to .o object files
-$(OBJDIR)/%.o:	$(RESDIR)/%.c  $(STRUCTDIR)/%.c 
+$(OBJDIR)/%.o:	$(RESDIR)/%.c
 	$(LCC) $(CFLAGS) -c -o $@ $<
 
 # Compile .c files in "structs/" to .o object files
-#$(OBJDIR)/%.o:	$(STRUCTDIR)/%.c 
-#	$(LCC) $(CFLAGS) -c -o $@ $<
+$(OBJDIR)/%.o:	$(STRUCTDIR)/%.c 
+	$(LCC) $(CFLAGS) -c -o $@ $<
 
 # Compile .s assembly files in "src/" to .o object files
 $(OBJDIR)/%.o:	$(SRCDIR)/%.s
