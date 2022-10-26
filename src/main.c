@@ -6,6 +6,8 @@
 
 #include "primaryblocks.h"
 #include "secondaryblocks.h"
+#include "timetrapsup.h"
+#include "timetrapsdown.h"
 
 
 #include "mapzero.h"
@@ -45,6 +47,7 @@ const unsigned char OBSTACLETILES[1] = {0x07};
 const uint8_t OBSTACLECOUNT = 1;
 const unsigned char SWITCHBLOCKS[2] = {0x08, 0x09}; 
 const uint8_t SWITCHTILE = 0x0a;
+const unsigned char TIMETRAPBLOCKS[1] = {0x0b}; 
 
 
 const UWORD primaryBackgroundPalette[] = {
@@ -104,7 +107,11 @@ const unsigned char* playerTilesets[] = {
 
 //red/blue switch for switchblocks, 0 for red
 uint8_t switchState = 0;
+//raises/lowers spike traps, 0 for down
+uint8_t timeTrapState = 1;
 
+uint8_t timeTrapCounter = 60;
+const uint8_t TIMETRAPTIMELIMIT = 60;
 
 
 const uint8_t CENTERX = 80;
@@ -248,7 +255,17 @@ inline uint8_t checkObstacleCollision(uint16_t x, uint16_t y) {
 			dead = 1;
 		} 
 	}
-	return !dead ;
+	if (dead) {
+		return 0;
+	}
+	else {
+		if (timeTrapState) { //traps are in up position
+			if (MapZeroPLN0[ind] == TIMETRAPBLOCKS[0]) {
+				return 0;
+			}
+		}
+	}
+	return 1 ;
 }
 
 inline void addGravity() {
@@ -331,16 +348,18 @@ void movePlayer() {
 
 		if (checkFloorCollision(playerX, newPlayerY) && checkFloorCollision(playerX+ sideEdge -1, newPlayerY) && checkFloorCollision(playerX-sideEdge + 1, newPlayerY)) {
 			addGravity();
-			
 			onGround = 0;
 			set_sprite_tile(0, 12);
 			set_sprite_tile(1,  14);
 
 		}
 		else {
+			hp -= ySpeed >> 2;
+
 			onGround = 1;
 			jumping = 0;
 			ySpeed = 0;
+
 		}
 	}
 
@@ -372,13 +391,19 @@ void movePlayer() {
 	}
 
 
-
-
 	playerYScaled += ySpeed >> 3;
 	playerY = playerYScaled >> 3;
 
+	if (!checkObstacleCollision(playerX - sideEdge, playerY - (hatHeight >> 1))
+		|| !checkObstacleCollision(playerX - sideEdge, playerY-1) 
+		|| !checkObstacleCollision(playerX + sideEdge, playerY - (hatHeight >> 1))
+		|| !checkObstacleCollision(playerX + sideEdge, playerY-1) )
+	{
+		hp = 0;
+	}
 
 
+	//tile as in vram tiles for player tileset
 	uint16_t currentTile = (maxHp - hp) / 100;
 	currentTile = u16Clamp(currentTile,0, 7);
 	if (currentTile != previousTile) {
@@ -393,13 +418,7 @@ void movePlayer() {
 		set_sprite_tile(1,  2+ (playerFrame << 2));
 	}
 
-	if (!checkObstacleCollision(playerX - sideEdge, playerY - (hatHeight >> 1))
-		|| !checkObstacleCollision(playerX - sideEdge, playerY-1) 
-		|| !checkObstacleCollision(playerX + sideEdge, playerY - (hatHeight >> 1))
-		|| !checkObstacleCollision(playerX + sideEdge, playerY-1) )
-	{
-		hp = 0;
-	}
+
 	
 
 }
@@ -605,6 +624,8 @@ void fire() {
 		return;
 	}
 
+
+	hp -= 10;
 	framesSinceLastFire = 0;
 	
 	projectiles[oldestProjectile].active = 1;
@@ -615,12 +636,12 @@ void fire() {
 
 	//TODO: korjaa nopeuden skaalaus
 	if (xDir > 0) {
-		projectiles[oldestProjectile].xSpeed = 20 + xSpeed;
+		projectiles[oldestProjectile].xSpeed = PROJECTILEINITXSPEED + xSpeed;
 	}
 	if (xDir < 0) {
-		projectiles[oldestProjectile].xSpeed = -20 + xSpeed;
+		projectiles[oldestProjectile].xSpeed = -PROJECTILEINITXSPEED + xSpeed;
 	}
-	projectiles[oldestProjectile].ySpeed = -80 + ySpeed;
+	projectiles[oldestProjectile].ySpeed = -PROJECTILEINITYSPEED + ySpeed;
 
 	oldestProjectile++;
 	if (oldestProjectile >= PROJECTILECOUNT) {
@@ -638,7 +659,13 @@ void moveProjectiles() {
 	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
 
 		if (projectiles[i].active) {
-			projectiles[i].scaledX += projectiles[i].xSpeed;
+			if (projectiles[i].xSpeed > 0) {
+				projectiles[i].scaledX += projectiles[i].xSpeed >> 3;
+
+			}
+			if (projectiles[i].xSpeed < 0) {
+				projectiles[i].scaledX += -((-projectiles[i].xSpeed) >> 3);
+			}
 
 			projectiles[i].ySpeed += AIRGRAVITY ;
 
@@ -661,12 +688,12 @@ void moveProjectiles() {
 void switchBlocks() {
 	if (switchState) {
 		switchState = 0;
-		set_bkg_data(0x08, 10, PrimaryBlocks); 
+		set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
 
 	}
 	else {
 		switchState = 1;
-		set_bkg_data(0x08, 10, SecondaryBlocks); 
+		set_bkg_data(SWITCHBLOCKS[0], 3, SecondaryBlocks); 
 	}
 }
 
@@ -687,6 +714,23 @@ void checkProjectileCollisions() {
 
 		}
 	}
+}
+
+void updateTraps() {
+	if (timeTrapCounter == 0) {
+		if (timeTrapState) {
+			timeTrapState = 0;
+			set_bkg_data(TIMETRAPBLOCKS[0], 1, TimeTrapsDown); 
+		}
+		else {
+			timeTrapState = 1;
+			set_bkg_data(TIMETRAPBLOCKS[0], 1, TimeTrapsUp); 
+		}
+		timeTrapCounter = TIMETRAPTIMELIMIT;
+	}
+
+
+
 }
 
 void main(){
@@ -712,8 +756,8 @@ void main(){
 	set_bkg_palette(0, 5, &primaryBackgroundPalette[0]);
 	
 
-	set_bkg_data(0, 11, Tileset); 
-	set_bkg_data(0x08, 10, PrimaryBlocks); 
+	set_bkg_data(0, 12, Tileset); 
+	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
 
 
 	VBK_REG = 1;
@@ -765,6 +809,8 @@ void main(){
 
 			updateEntityPositions();
 
+			updateTraps();
+
 			if (checkFinish()) {
 				break;
 			}
@@ -775,6 +821,7 @@ void main(){
 			}
 
 			framesSinceLastFire++;
+			timeTrapCounter--;
 
 			wait_vbl_done();
 			

@@ -23,6 +23,12 @@ const uint8_t PROJECTILECOUNT = 3;
 
 const uint16_t fireDelay = 20; //frames
 
+const int16_t PROJECTILEINITXSPEED= 100;
+
+const int16_t PROJECTILEINITYSPEED= 75;
+
+
 uint8_t oldestProjectile = 0;
 
 uint16_t framesSinceLastFire = 1000;
+
