@@ -3,6 +3,11 @@
 #include <gb/cgb.h>
 
 #include "tileset.h"
+
+#include "primaryblocks.h"
+#include "secondaryblocks.h"
+
+
 #include "mapzero.h"
 
 //#include "playertiles.h"
@@ -24,10 +29,12 @@
 #define MIN(A,B) ((A)<(B)?(A):(B))
 
 
-//TODO: korjaa kartan init siirto kun pääsee maaliin
 //logo kikkailua tms
 
 //nopeuden skaalaus kusee 
+// primary/secondary switch kun pallo osuu vipuun
+// array palloille?
+// alas + a pudottautuu?
 
 
 const unsigned char FLOORTILES[2] = {0x01, 0x06}; 
@@ -36,7 +43,8 @@ const unsigned char ROOFTILES[1] = {0x01};
 const uint8_t ROOFTILECOUNT = 1;
 const unsigned char OBSTACLETILES[1] = {0x07};
 const uint8_t OBSTACLECOUNT = 1;
-
+const unsigned char SWITCHBLOCKS[2] = {0x08, 0x09}; 
+const uint8_t SWITCHTILE = 0x0a;
 
 
 const UWORD primaryBackgroundPalette[] = {
@@ -58,31 +66,14 @@ const UWORD primaryBackgroundPalette[] = {
 	TilesetCGBPal3c0,
 	TilesetCGBPal3c1,
 	TilesetCGBPal3c2,
-	TilesetCGBPal3c3,};
-
-//switching colors when necessary
-const UWORD secondaryBackgroundPalette[] = {
-	TilesetCGBPal0c0,
-	TilesetCGBPal0c1,
-	TilesetCGBPal0c2,
-	TilesetCGBPal0c3,
-
-	TilesetCGBPal1c0,
-	TilesetCGBPal1c1,
-	TilesetCGBPal1c2,
-	TilesetCGBPal1c3,
-
-	TilesetCGBPal3c0,
-	TilesetCGBPal3c1,
-	TilesetCGBPal3c2,
 	TilesetCGBPal3c3,
-
-	TilesetCGBPal2c0,
-	TilesetCGBPal2c1,
-	TilesetCGBPal2c2,
-	TilesetCGBPal2c3,
-
+	
+	TilesetCGBPal4c0,
+	TilesetCGBPal4c1,
+	TilesetCGBPal4c2,
+	TilesetCGBPal4c3,
 };
+
 
 
 const UWORD spritePalette[] = {
@@ -111,8 +102,8 @@ const unsigned char* playerTilesets[] = {
 
 };
 
-//
-uint8_t currentBkgPalette = 0;
+//red/blue switch for switchblocks, 0 for red
+uint8_t switchState = 0;
 
 
 
@@ -175,9 +166,6 @@ uint16_t oldYDiff = 0;
 uint16_t onScreenX = 0;
 uint16_t onScreenY = 0;
 
-struct ProjectileObj projectile = {
-	0,0,0,0,0, 2
-};
 
 
 inline uint8_t uClamp( uint8_t value, uint8_t min, uint8_t max )
@@ -201,6 +189,8 @@ inline int16_t i16abs(int16_t value) {
 }
 
 
+
+
 //returns true if there is no collision in a point
 inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
 	uint16_t ind = MapZeroWidth*((y)>>3) + ((x)>>3);
@@ -210,8 +200,21 @@ inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
 			floor = 1;
 		} 
 	}
-	return !floor ;
+	if (floor) {
+		return 0;
+	}
+	
+	else {
+		if (MapZeroPLN0[ind] == SWITCHBLOCKS[0] && switchState == 0) {
+			return 0;
+		}
+		if (MapZeroPLN0[ind] == SWITCHBLOCKS[1] && switchState == 1) {
+			return 0;
+		}
+		return 1;
+	}
 }
+
 inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 	uint16_t ind = MapZeroWidth*((y)>>3) + ((x)>>3);
 	uint8_t roof = 0;
@@ -220,8 +223,22 @@ inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 			roof = 1;
 		} 
 	}
-	return !roof ;
+	if (roof) {
+		return 0;
+	}
+	
+	else {
+		if (MapZeroPLN0[ind] == SWITCHBLOCKS[0] && switchState == 0) {
+			return 0;
+		}
+		if (MapZeroPLN0[ind] == SWITCHBLOCKS[1] && switchState == 1) {
+			return 0;
+		}
+		return 1;
+	}
 }
+
+	
 //returns 1, if player should stay alive
 inline uint8_t checkObstacleCollision(uint16_t x, uint16_t y) {
 	uint16_t ind = MapZeroWidth*((y)>>3) + ((x)>>3);
@@ -413,11 +430,14 @@ void updateEntityPositions() {
 	move_sprite(1, onScreenX + 8, onScreenY);
 
 
-	if (projectile.active) {
-		//projectile positions
-		uint16_t projectileScreenX = projectile.x - xDiff;
-		uint16_t projectileScreenY = projectile.y - yDiff;
-		move_sprite(2, projectileScreenX, projectileScreenY +4);
+	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
+		if (projectiles[i].active) {
+			//projectile positions
+			uint16_t projectileScreenX = projectiles[i].x - xDiff;
+			uint16_t projectileScreenY = projectiles[i].y - yDiff;
+			move_sprite(projectiles[i].tile, projectileScreenX, projectileScreenY +4);
+		}
+
 	}
 
 
@@ -526,6 +546,22 @@ void startLevel() {
 
 }
 
+void initProjectiles() {
+	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
+		projectiles[i].active == 0;	
+		projectiles[i].x = 200;
+		projectiles[i].y = 200;
+		projectiles[i].scaledX = 200 << 3;
+		projectiles[i].scaledY = 200 << 3;
+		projectiles[i].tile = 10 + i;
+
+
+		set_sprite_tile(projectiles[i].tile, 0x10);
+		set_sprite_prop(projectiles[i].tile,1); //1 (2nd) palette
+
+	}
+}
+
 void animatePlayer() {
 
 	frameCounter -= 1;
@@ -564,41 +600,94 @@ void playDeathAnimation() {
 }
 
 void fire() {
-	projectile.active = 1;
-	projectile.x = playerX + 4;
-	projectile.y = playerY - 8;
-	projectile.scaledX = (playerX + 4)<<3;
-	projectile.scaledY = (playerY -8)<<3;
+
+	if (framesSinceLastFire < fireDelay) {
+		return;
+	}
+
+	framesSinceLastFire = 0;
+	
+	projectiles[oldestProjectile].active = 1;
+	projectiles[oldestProjectile].x = playerX + 4;
+	projectiles[oldestProjectile].y = playerY - 8;
+	projectiles[oldestProjectile].scaledX = (playerX + 4)<<3;
+	projectiles[oldestProjectile].scaledY = (playerY -8)<<3;
 
 	//TODO: korjaa nopeuden skaalaus
 	if (xDir > 0) {
-		projectile.xSpeed = 20 + xSpeed;
+		projectiles[oldestProjectile].xSpeed = 20 + xSpeed;
 	}
 	if (xDir < 0) {
-		projectile.xSpeed = -20 + xSpeed;
+		projectiles[oldestProjectile].xSpeed = -20 + xSpeed;
 	}
-	projectile.ySpeed = -80 + ySpeed;
+	projectiles[oldestProjectile].ySpeed = -80 + ySpeed;
+
+	oldestProjectile++;
+	if (oldestProjectile >= PROJECTILECOUNT) {
+		oldestProjectile = 0;
+	}
+}
+
+static inline void removeProjectile(uint8_t i) {
+	projectiles[i].active = 0;
+	move_sprite(projectiles[i].tile, 200, 200);
 }
 
 void moveProjectiles() {
-	projectile.scaledX += projectile.xSpeed;
 
-	projectile.ySpeed += AIRGRAVITY ;
+	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
 
-	projectile.scaledY += projectile.ySpeed >> 3;
+		if (projectiles[i].active) {
+			projectiles[i].scaledX += projectiles[i].xSpeed;
 
-	projectile.x = projectile.scaledX >> 3;
-	projectile.y = projectile.scaledY >> 3;
+			projectiles[i].ySpeed += AIRGRAVITY ;
 
-	
-	if  (i16abs(playerX - projectile.x) > 200 || i16abs(playerY - projectile.y) > 200) {
-		projectile.active = 0;
-		move_sprite(projectile.tile, 200, 200);
+			projectiles[i].scaledY += projectiles[i].ySpeed >> 3;
+
+			projectiles[i].x = projectiles[i].scaledX >> 3;
+			projectiles[i].y = projectiles[i].scaledY >> 3;
+
+		
+			if  (i16abs(playerX - projectiles[i].x) > 200 || i16abs(playerY - projectiles[i].y) > 200) {
+				removeProjectile(i);
+			}
+
+
+		}
+		
 	}
-	
-	
 }
 
+void switchBlocks() {
+	if (switchState) {
+		switchState = 0;
+		set_bkg_data(0x08, 10, PrimaryBlocks); 
+
+	}
+	else {
+		switchState = 1;
+		set_bkg_data(0x08, 10, SecondaryBlocks); 
+	}
+}
+
+void checkProjectileCollisions() {
+	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
+
+		if (projectiles[i].active) {
+			if (!checkFloorCollision(projectiles[i].x, projectiles[i].y-4)) {
+				removeProjectile(i);
+				continue;
+			}
+
+			uint16_t ind = MapZeroWidth*((projectiles[i].y-4)>>3) + ((projectiles[i].x)>>3);
+			if (MapZeroPLN0[ind] == SWITCHTILE) {
+				switchBlocks();
+				removeProjectile(i);
+			} 
+
+		}
+	}
+}
 
 void main(){
 
@@ -620,9 +709,12 @@ void main(){
 	SHOW_BKG;
 
 
-	set_bkg_palette(0, 4, &primaryBackgroundPalette[0]);
+	set_bkg_palette(0, 5, &primaryBackgroundPalette[0]);
+	
 
-	set_bkg_data(0, 10, Tileset); 
+	set_bkg_data(0, 11, Tileset); 
+	set_bkg_data(0x08, 10, PrimaryBlocks); 
+
 
 	VBK_REG = 1;
 	//set_bkg_tiles(0,0, 32, 32, MapZeroPLN1);
@@ -648,13 +740,11 @@ void main(){
 	set_sprite_prop(0,0); //loading 0th palette
 	set_sprite_prop(1,0); //also 0th
 
-	set_sprite_tile(2, 0x10);
-	set_sprite_prop(2,1); //also 0th
-	move_sprite(2, 100, 100);
 
 	while(1) {
 
 		startLevel();
+		initProjectiles();
 
 		while(1) {
 
@@ -667,18 +757,11 @@ void main(){
 
 			if (joydata & J_B && !(previousJoydata & J_B)) {
 				fire();
-
-				if (currentBkgPalette) {
-					set_bkg_palette(0, 4, &primaryBackgroundPalette[0]);
-					currentBkgPalette = 0;
-				}
-				else {
-					set_bkg_palette(0, 4, &secondaryBackgroundPalette[0]);
-					currentBkgPalette = 1;
-				}
 			}
 
 			moveProjectiles();
+
+			checkProjectileCollisions();
 
 			updateEntityPositions();
 
@@ -690,6 +773,8 @@ void main(){
 				playDeathAnimation();
 				break;
 			}
+
+			framesSinceLastFire++;
 
 			wait_vbl_done();
 			

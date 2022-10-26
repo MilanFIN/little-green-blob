@@ -10,3 +10,19 @@ typedef struct ProjectileObj {
 	int16_t ySpeed;
 	uint8_t tile;
 };
+
+
+/*struct ProjectileObj projectile = {
+	0,0,0,0,0, 2
+};
+*/
+
+struct ProjectileObj projectiles[3];
+
+const uint8_t PROJECTILECOUNT = 3;
+
+const uint16_t fireDelay = 20; //frames
+
+uint8_t oldestProjectile = 0;
+
+uint16_t framesSinceLastFire = 1000;
