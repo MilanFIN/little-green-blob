@@ -48,6 +48,8 @@ const uint8_t OBSTACLECOUNT = 1;
 const unsigned char SWITCHBLOCKS[2] = {0x08, 0x09}; 
 const uint8_t SWITCHTILE = 0x0a;
 const unsigned char TIMETRAPBLOCKS[1] = {0x0b}; 
+const unsigned char TIMEPLATFORMBLOCKS[2] = {0x0c, 0x0d}; 
+
 
 
 const UWORD primaryBackgroundPalette[] = {
@@ -218,6 +220,12 @@ inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
 		if (MapZeroPLN0[ind] == SWITCHBLOCKS[1] && switchState == 1) {
 			return 0;
 		}
+		if (MapZeroPLN0[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
+			return 0;
+		}		
+		if (MapZeroPLN0[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
+			return 0;
+		}
 		return 1;
 	}
 }
@@ -239,6 +247,12 @@ inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 			return 0;
 		}
 		if (MapZeroPLN0[ind] == SWITCHBLOCKS[1] && switchState == 1) {
+			return 0;
+		}
+		if (MapZeroPLN0[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
+			return 0;
+		}		
+		if (MapZeroPLN0[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
 			return 0;
 		}
 		return 1;
@@ -720,11 +734,11 @@ void updateTraps() {
 	if (timeTrapCounter == 0) {
 		if (timeTrapState) {
 			timeTrapState = 0;
-			set_bkg_data(TIMETRAPBLOCKS[0], 1, TimeTrapsDown); 
+			set_bkg_data(TIMETRAPBLOCKS[0], 3, TimeTrapsDown); 
 		}
 		else {
 			timeTrapState = 1;
-			set_bkg_data(TIMETRAPBLOCKS[0], 1, TimeTrapsUp); 
+			set_bkg_data(TIMETRAPBLOCKS[0], 3, TimeTrapsUp); 
 		}
 		timeTrapCounter = TIMETRAPTIMELIMIT;
 	}
@@ -756,7 +770,7 @@ void main(){
 	set_bkg_palette(0, 5, &primaryBackgroundPalette[0]);
 	
 
-	set_bkg_data(0, 12, Tileset); 
+	set_bkg_data(0, 14, Tileset); 
 	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
 
 
