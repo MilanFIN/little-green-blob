@@ -152,6 +152,7 @@ int16_t JUMPCARRY = 16;
 
 
 uint8_t onGround = 0;
+uint8_t inWater = 0;
 uint8_t jumping = 0;
 uint8_t jumpReleased = 1;
 
@@ -288,10 +289,14 @@ inline void addGravity() {
 
 	
 	if (MapZeroPLN0[ind] == 0x02 || MapZeroPLN0[ind] == 0x03 ) {
+		inWater = 1;
 		//ySpeed = i16Clamp(ySpeed, -WATERFALLSPEEDLIMIT, WATERFALLSPEEDLIMIT);
 		if (ySpeed > WATERFALLSPEEDLIMIT) {
 			ySpeed = WATERFALLSPEEDLIMIT;
 		}
+	}
+	else {
+		inWater = 0;
 	}
 }
 
@@ -306,12 +311,10 @@ void movePlayer() {
 	if (joydata & J_LEFT) {
 			xDir = -1;
 			xSpeed -= acceleration;
-			hp -= 2;
 	}
 	else if (joydata & J_RIGHT) {
 			xDir = 1;
 			xSpeed += acceleration;
-			hp -= 2;
 	}
 	else {
 		if (xSpeed > 0) {
@@ -403,6 +406,17 @@ void movePlayer() {
 	} else {
 		jumpReleased = 1;
 	}
+
+	if (onGround && xSpeed != 0) {
+		hp -= 2;
+	}
+
+	if (inWater) {
+		hp += 10;
+
+	}
+
+	hp = i16Clamp(hp, 0, maxHp);
 
 
 	playerYScaled += ySpeed >> 3;
