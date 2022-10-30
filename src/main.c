@@ -10,7 +10,7 @@
 #include "timetrapsdown.h"
 
 
-#include "mapzero.h"
+#include "mapholder.h"
 
 //#include "playertiles.h"
 //#include "playerjumptiles.h"
@@ -33,7 +33,6 @@
 
 //TODO: 
 // paletin vaihto kun ottaa vahinkoa, ja ajoittain kun esim hp <200
-// vaihdon pituus voisi liittyä vahingon määrään
 // aaltoefekti kun ylilatautunut hp? skaala hp:n perusteella, lähestyy hiljalleen maxhp
 // alas + a pudottautuu?
 
@@ -51,32 +50,6 @@ const unsigned char TIMEPLATFORMBLOCKS[2] = {0x0c, 0x0d};
 
 
 
-const UWORD primaryBackgroundPalette[] = {
-	TilesetCGBPal0c0,
-	TilesetCGBPal0c1,
-	TilesetCGBPal0c2,
-	TilesetCGBPal0c3,
-
-	TilesetCGBPal1c0,
-	TilesetCGBPal1c1,
-	TilesetCGBPal1c2,
-	TilesetCGBPal1c3,
-
-	TilesetCGBPal2c0,
-	TilesetCGBPal2c1,
-	TilesetCGBPal2c2,
-	TilesetCGBPal2c3,
-
-	TilesetCGBPal3c0,
-	TilesetCGBPal3c1,
-	TilesetCGBPal3c2,
-	TilesetCGBPal3c3,
-	
-	TilesetCGBPal4c0,
-	TilesetCGBPal4c1,
-	TilesetCGBPal4c2,
-	TilesetCGBPal4c3,
-};
 
 
 
@@ -127,7 +100,7 @@ uint8_t joydata = 0;
 uint8_t previousJoydata = 0;
 
 
-const uint8_t PLAYERHURTPALETTETIME = 10;//frames
+uint8_t playerHurtPaletteTime = 10;//frames
 uint8_t playerHurt = 0;
 uint8_t playerHurtPaletteCounter = 0;
 
@@ -186,6 +159,11 @@ uint16_t onScreenY = 0;
 
 
 
+
+
+
+
+
 inline uint8_t uClamp( uint8_t value, uint8_t min, uint8_t max )
 {
     return (value < min) ? min : (value > max) ? max : value;
@@ -211,39 +189,40 @@ inline int16_t i16abs(int16_t value) {
 
 //returns true if there is no collision in a point
 inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
-	uint16_t ind = MapZeroWidth*((y)>>3) + ((x)>>3);
+	uint16_t ind = MAPS[currentMap].width*((y)>>3) + ((x)>>3);
 	uint8_t floor = 0;
 	for (uint8_t i=0; i < FLOORTILECOUNT; i++) {
-		if (MapZeroPLN0[ind] == FLOORTILES[i]) {
+		if (MAPS[currentMap].tilePlane[ind] == FLOORTILES[i]) {
 			floor = 1;
 		} 
 	}
 	if (floor) {
 		return 0;
 	}
-	
+
 	else {
-		if (MapZeroPLN0[ind] == SWITCHBLOCKS[0] && switchState == 0) {
+		if (MAPS[currentMap].tilePlane[ind] == SWITCHBLOCKS[0] && switchState == 0) {
 			return 0;
 		}
-		if (MapZeroPLN0[ind] == SWITCHBLOCKS[1] && switchState == 1) {
+		if (MAPS[currentMap].tilePlane[ind] == SWITCHBLOCKS[1] && switchState == 1) {
 			return 0;
 		}
-		if (MapZeroPLN0[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
+		if (MAPS[currentMap].tilePlane[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
 			return 0;
 		}		
-		if (MapZeroPLN0[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
+		if (MAPS[currentMap].tilePlane[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
 			return 0;
 		}
 		return 1;
 	}
 }
 
+
 inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
-	uint16_t ind = MapZeroWidth*((y)>>3) + ((x)>>3);
+	uint16_t ind = MAPS[currentMap].width*((y)>>3) + ((x)>>3);
 	uint8_t roof = 0;
 	for (uint8_t i=0; i < ROOFTILECOUNT; i++) {
-		if (MapZeroPLN0[ind] == ROOFTILES[i]) {
+		if (MAPS[currentMap].tilePlane[ind] == ROOFTILES[i]) {
 			roof = 1;
 		} 
 	}
@@ -252,29 +231,29 @@ inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 	}
 	
 	else {
-		if (MapZeroPLN0[ind] == SWITCHBLOCKS[0] && switchState == 0) {
+		if (MAPS[currentMap].tilePlane[ind] == SWITCHBLOCKS[0] && switchState == 0) {
 			return 0;
 		}
-		if (MapZeroPLN0[ind] == SWITCHBLOCKS[1] && switchState == 1) {
+		if (MAPS[currentMap].tilePlane[ind] == SWITCHBLOCKS[1] && switchState == 1) {
 			return 0;
 		}
-		if (MapZeroPLN0[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
+		if (MAPS[currentMap].tilePlane[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
 			return 0;
 		}		
-		if (MapZeroPLN0[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
+		if (MAPS[currentMap].tilePlane[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
 			return 0;
 		}
 		return 1;
 	}
 }
 
-	
+
 //returns 1, if player should stay alive
 inline uint8_t checkObstacleCollision(uint16_t x, uint16_t y) {
-	uint16_t ind = MapZeroWidth*((y)>>3) + ((x)>>3);
+	uint16_t ind = MAPS[currentMap].width*((y)>>3) + ((x)>>3);
 	uint8_t dead = 0;
 	for (uint8_t i=0; i < OBSTACLECOUNT; i++) {
-		if (MapZeroPLN0[ind] == OBSTACLETILES[i]) {
+		if (MAPS[currentMap].tilePlane[ind] == OBSTACLETILES[i]) {
 			dead = 1;
 		} 
 	}
@@ -283,7 +262,7 @@ inline uint8_t checkObstacleCollision(uint16_t x, uint16_t y) {
 	}
 	else {
 		if (timeTrapState) { //traps are in up position
-			if (MapZeroPLN0[ind] == TIMETRAPBLOCKS[0]) {
+			if (MAPS[currentMap].tilePlane[ind] == TIMETRAPBLOCKS[0]) {
 				return 0;
 			}
 		}
@@ -292,13 +271,12 @@ inline uint8_t checkObstacleCollision(uint16_t x, uint16_t y) {
 }
 
 inline void addGravity() {
-	uint16_t ind = MapZeroWidth*((playerY - 8)>>3) + ((playerX)>>3);
+	uint16_t ind = MAPS[currentMap].width*((playerY - 8)>>3) + ((playerX)>>3);
 	ySpeed += AIRGRAVITY;
 
 	
-	if (MapZeroPLN0[ind] == 0x02 || MapZeroPLN0[ind] == 0x03 ) {
+	if (MAPS[currentMap].tilePlane[ind] == 0x02 || MAPS[currentMap].tilePlane[ind] == 0x03 ) {
 		inWater = 1;
-		//ySpeed = i16Clamp(ySpeed, -WATERFALLSPEEDLIMIT, WATERFALLSPEEDLIMIT);
 		if (ySpeed > WATERFALLSPEEDLIMIT) {
 			ySpeed = WATERFALLSPEEDLIMIT;
 		}
@@ -306,6 +284,27 @@ inline void addGravity() {
 	else {
 		inWater = 0;
 	}
+}
+
+
+void putPlayerOnGround(uint16_t sideEdge) {
+	uint16_t yDistance = 0;
+	uint16_t newPlayerY = playerY;
+	while (yDistance < 16) {
+		
+        if (!checkFloorCollision(playerX, newPlayerY) || 
+			!checkFloorCollision(playerX+ sideEdge -1, newPlayerY) ||
+			!checkFloorCollision(playerX-sideEdge + 1, newPlayerY))
+		{	
+			break;
+		}
+		newPlayerY++;
+		yDistance++;
+	}
+
+	playerY = newPlayerY;
+	playerYScaled = playerY << 3;
+
 }
 
 
@@ -380,9 +379,10 @@ void movePlayer() {
 		}
 		else {
 			if (ySpeed != 0) {
+				putPlayerOnGround(sideEdge);
 				playerHurt = 1;
+				playerHurtPaletteTime = uClamp(ySpeed >> 4, 1, 10);
 				hp -= ySpeed >> 2;
-
 			}
 
 			onGround = 1;
@@ -393,7 +393,7 @@ void movePlayer() {
 	}
 
 	if (ySpeed < 0) {
-		//player top
+		//player top if movement goes through this frame
 		uint16_t newPlayerY = ((playerYScaled + (ySpeed>>3)) >> 3) - hatHeight;
 
 		if (!checkRoofCollision(playerX, newPlayerY) || !checkRoofCollision(playerX + sideEdge - 1, newPlayerY) || !checkRoofCollision(playerX - sideEdge + 1, newPlayerY)) {
@@ -450,7 +450,6 @@ void movePlayer() {
 		set_sprite_data(0, 16, playerTilesets[currentTile]);
 		previousTile = currentTile;
 	}
-	//printf("%d\n", (playerFrame << 1));
 
 	
 	if (ySpeed == 0) {
@@ -472,15 +471,14 @@ void updateEntityPositions() {
 	if (xDiff < 0) {
 		xDiff = 0;
 	}
-	//printf("%d\n", (MapZeroWidth << 3) - 160);
-	if (xDiff > (MapZeroWidth << 3) - 160) { //map width - 160 = (95)
-		xDiff = (MapZeroWidth << 3) - 160;
+	if (xDiff > (MAPS[currentMap].width << 3) - 160) { //map width - 160 = (95)
+		xDiff = (MAPS[currentMap].width << 3) - 160;
 	}
 	if (yDiff < 0) {
 		yDiff = 0;
 	}
-	if (yDiff > (MapZeroHeight << 3) - 144) { 
-		yDiff = (MapZeroHeight << 3) - 144;
+	if (yDiff > (MAPS[currentMap].height << 3) - 144) { 
+		yDiff = (MAPS[currentMap].height << 3) - 144;
 	}
 	//player positions
 	onScreenX = playerX - xDiff;
@@ -510,15 +508,15 @@ void updateEntityPositions() {
 	if (map_pos_x != old_map_pos_x) {
 		if (xDiff < oldXDiff) {
 			VBK_REG = 1;
-			set_bkg_submap(map_pos_x, map_pos_y, 1, MIN(19u, MapZeroHeight - map_pos_y), MapZeroPLN1, MapZeroWidth);     
+			set_bkg_submap(map_pos_x, map_pos_y, 1, MIN(19u, MAPS[currentMap].height - map_pos_y), MAPS[currentMap].palettePlane, MAPS[currentMap].width);     
 			VBK_REG = 0;
-			set_bkg_submap(map_pos_x, map_pos_y, 1, MIN(19u, MapZeroHeight - map_pos_y), MapZeroPLN0, MapZeroWidth);     
+			set_bkg_submap(map_pos_x, map_pos_y, 1, MIN(19u, MAPS[currentMap].height - map_pos_y), MAPS[currentMap].tilePlane, MAPS[currentMap].width);     
 		} else {
-			if ((MapZeroWidth - 20u) > map_pos_x) {
+			if ((MAPS[currentMap].width - 20u) > map_pos_x) {
 				VBK_REG = 1;
-				set_bkg_submap(map_pos_x + 20u, map_pos_y, 1, MIN(19u, MapZeroHeight - map_pos_y), MapZeroPLN1, MapZeroWidth);   
+				set_bkg_submap(map_pos_x + 20u, map_pos_y, 1, MIN(19u, MAPS[currentMap].height - map_pos_y), MAPS[currentMap].palettePlane, MAPS[currentMap].width);   
 				VBK_REG = 0;
-				set_bkg_submap(map_pos_x + 20u, map_pos_y, 1, MIN(19u, MapZeroHeight - map_pos_y), MapZeroPLN0, MapZeroWidth);   
+				set_bkg_submap(map_pos_x + 20u, map_pos_y, 1, MIN(19u, MAPS[currentMap].height - map_pos_y), MAPS[currentMap].tilePlane, MAPS[currentMap].width);   
 			}   
 		}
 		old_map_pos_x = map_pos_x;
@@ -529,17 +527,17 @@ void updateEntityPositions() {
 	if (map_pos_y != old_map_pos_y) { 
 		if (yDiff < oldYDiff) {
 			VBK_REG = 1;
-			set_bkg_submap(map_pos_x, map_pos_y, MIN(21u, MapZeroWidth-map_pos_x), 1, MapZeroPLN1, MapZeroWidth);
+			set_bkg_submap(map_pos_x, map_pos_y, MIN(21u, MAPS[currentMap].width-map_pos_x), 1, MAPS[currentMap].palettePlane, MAPS[currentMap].width);
 			VBK_REG = 0;
-			set_bkg_submap(map_pos_x, map_pos_y, MIN(21u, MapZeroWidth-map_pos_x), 1, MapZeroPLN0, MapZeroWidth);
+			set_bkg_submap(map_pos_x, map_pos_y, MIN(21u, MAPS[currentMap].width-map_pos_x), 1, MAPS[currentMap].tilePlane, MAPS[currentMap].width);
 
 		} 
 		else {
-			if ((MapZeroHeight - 18u) > map_pos_y) {
+			if ((MAPS[currentMap].height - 18u) > map_pos_y) {
 				VBK_REG = 1;
-				set_bkg_submap(map_pos_x, map_pos_y + 18u, MIN(21u, MapZeroWidth-map_pos_x), 1, MapZeroPLN1, MapZeroWidth); 
+				set_bkg_submap(map_pos_x, map_pos_y + 18u, MIN(21u, MAPS[currentMap].width-map_pos_x), 1, MAPS[currentMap].palettePlane, MAPS[currentMap].width); 
 				VBK_REG = 0;
-				set_bkg_submap(map_pos_x, map_pos_y + 18u, MIN(21u, MapZeroWidth-map_pos_x), 1, MapZeroPLN0, MapZeroWidth); 
+				set_bkg_submap(map_pos_x, map_pos_y + 18u, MIN(21u, MAPS[currentMap].width-map_pos_x), 1, MAPS[currentMap].tilePlane, MAPS[currentMap].width); 
 			}   
 		}
 		old_map_pos_y = map_pos_y;
@@ -562,20 +560,21 @@ void startLevel() {
 	uint16_t y = 0;
 
 	VBK_REG = 1;
-	set_bkg_submap(0, 0, 20, 18, MapZeroPLN1, MapZeroWidth);
+	set_bkg_submap(0, 0, 20, 18, MAPS[currentMap].palettePlane, MAPS[currentMap].width);
 	VBK_REG = 0;
-	set_bkg_submap(0, 0, 20, 18, MapZeroPLN0, MapZeroWidth);
+	set_bkg_submap(0, 0, 20, 18, MAPS[currentMap].tilePlane, MAPS[currentMap].width);
+
 
 
 
 	uint8_t shouldBreak = 0;
-	for (y = 0; y < MapZeroHeight; y++) {
+	for (y = 0; y < MAPS[currentMap].height; y++) {
 		if (shouldBreak) {
 			break;
 		}
-		for (x = 0; x < MapZeroWidth; x++) {
-			uint16_t ind = MapZeroWidth*y + x;
-			if (MapZeroPLN0[ind] == 0x04) {
+		for (x = 0; x < MAPS[currentMap].width; x++) {
+			uint16_t ind = MAPS[currentMap].width*y + x;
+			if (MAPS[currentMap].tilePlane[ind] == 0x04) {
 				shouldBreak = 1;
 				break;
 			}
@@ -588,14 +587,16 @@ void startLevel() {
 	playerX = x;
 	playerY = y;
 
+
+
 	shouldBreak = 0;
-	for (uint16_t j = 0; j < MapZeroHeight; j++) {
+	for (uint16_t j = 0; j < MAPS[currentMap].height; j++) {
 		if (shouldBreak) {
 			break;
 		}
-		for (uint16_t i = 0; i < MapZeroWidth; i++) {
-			uint16_t ind = MapZeroHeight*j + i;
-			if (MapZeroPLN0[ind] == 0x05) {
+		for (uint16_t i = 0; i < MAPS[currentMap].width; i++) {
+			uint16_t ind = MAPS[currentMap].width*j + i;
+			if (MAPS[currentMap].tilePlane[ind] == 0x05) {
 				finishTileIndex = ind;
 				shouldBreak = 1;
 				break;
@@ -637,7 +638,7 @@ void animatePlayer() {
 			set_sprite_palette(0,1, &playerPalette[4]);
 		}
 		playerHurtPaletteCounter++;
-		if (playerHurtPaletteCounter == PLAYERHURTPALETTETIME) {
+		if (playerHurtPaletteCounter == playerHurtPaletteTime) {
 			playerHurt = 0;
 			set_sprite_palette(0,1, &playerPalette[0]);
 			playerHurtPaletteCounter = 0;
@@ -648,7 +649,7 @@ void animatePlayer() {
 
 //1 if finished, 0 otherwise
 uint8_t checkFinish() {
-	uint16_t ind = MapZeroWidth*((playerY - 8)>>3) + ((playerX)>>3);
+	uint16_t ind = MAPS[currentMap].width*((playerY - 8)>>3) + ((playerX)>>3);
 
 	if (ind == finishTileIndex) {
 		return 1;
@@ -659,6 +660,7 @@ uint8_t checkFinish() {
 }
 
 void playDeathAnimation() {
+	set_sprite_palette(0, 1, &playerPalette[0]); 
 	for(uint8_t i = 0; i < 5;i++) {
 		move_sprite(0, 200, 200);
 		move_sprite(1, 200, 200);
@@ -759,8 +761,9 @@ void checkProjectileCollisions() {
 				continue;
 			}
 
-			uint16_t ind = MapZeroWidth*((projectiles[i].y-4)>>3) + ((projectiles[i].x)>>3);
-			if (MapZeroPLN0[ind] == SWITCHTILE) {
+
+			uint16_t ind = MAPS[currentMap].width*((projectiles[i].y-4)>>3) + ((projectiles[i].x)>>3);
+			if (MAPS[currentMap].tilePlane[ind] == SWITCHTILE) {
 				switchBlocks();
 				removeProjectile(i);
 			} 
@@ -813,14 +816,12 @@ void main(){
 	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
 
 
+	/*
 	VBK_REG = 1;
-	//set_bkg_tiles(0,0, 32, 32, MapZeroPLN1);
 	set_bkg_submap(0, 0, 20, 18, MapZeroPLN1, MapZeroWidth);
 	VBK_REG = 0;
-	//set_bkg_tiles(0, 0, 32, 32, MapZeroPLN0);
-
 	set_bkg_submap(0, 0, 20, 18, MapZeroPLN0, MapZeroWidth);
-
+	*/
 
 	set_sprite_palette(0, 1, &playerPalette[0]); // loading 1 palette of 4 colors
 
