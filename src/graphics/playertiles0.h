@@ -59,9 +59,9 @@
 #define PlayerTiles0CGBPal0c3 5344
 
 /* Gameboy Color palette 1 */
-#define PlayerTiles0CGBPal1c0 6076
-#define PlayerTiles0CGBPal1c1 8935
-#define PlayerTiles0CGBPal1c2 6596
+#define PlayerTiles0CGBPal1c0 32767
+#define PlayerTiles0CGBPal1c1 31
+#define PlayerTiles0CGBPal1c2 20
 #define PlayerTiles0CGBPal1c3 5344
 
 /* Gameboy Color palette 2 */

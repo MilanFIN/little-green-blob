@@ -31,11 +31,10 @@
 #define MIN(A,B) ((A)<(B)?(A):(B))
 
 
-//logo kikkailua tms
-
-//nopeuden skaalaus kusee 
-// primary/secondary switch kun pallo osuu vipuun
-// array palloille?
+//TODO: 
+// paletin vaihto kun ottaa vahinkoa, ja ajoittain kun esim hp <200
+// vaihdon pituus voisi liittyä vahingon määrään
+// aaltoefekti kun ylilatautunut hp? skaala hp:n perusteella, lähestyy hiljalleen maxhp
 // alas + a pudottautuu?
 
 
@@ -81,11 +80,16 @@ const UWORD primaryBackgroundPalette[] = {
 
 
 
-const UWORD spritePalette[] = {
-	PlayerTiles0SGBPal1c0,
+const UWORD playerPalette[] = {
+	PlayerTiles0SGBPal0c0,
 	PlayerTiles0CGBPal0c1,
 	PlayerTiles0CGBPal0c2,
-	PlayerTiles0CGBPal0c3
+	PlayerTiles0CGBPal0c3,
+	PlayerTiles0SGBPal1c0,
+	PlayerTiles0CGBPal1c1,
+	PlayerTiles0CGBPal1c2,
+	PlayerTiles0CGBPal1c3
+
 };
 
 const UWORD projectilePalette[] = {
@@ -122,6 +126,10 @@ const uint8_t CENTERY = 72;
 uint8_t joydata = 0;
 uint8_t previousJoydata = 0;
 
+
+const uint8_t PLAYERHURTPALETTETIME = 10;//frames
+uint8_t playerHurt = 0;
+uint8_t playerHurtPaletteCounter = 0;
 
 uint16_t playerX = 80;
 uint16_t playerY = 50;
@@ -371,7 +379,11 @@ void movePlayer() {
 
 		}
 		else {
-			hp -= ySpeed >> 2;
+			if (ySpeed != 0) {
+				playerHurt = 1;
+				hp -= ySpeed >> 2;
+
+			}
 
 			onGround = 1;
 			jumping = 0;
@@ -619,6 +631,19 @@ void animatePlayer() {
 		}
 		frameCounter = ANIMFRAMETIME;
 	}
+
+	if (playerHurt) {
+		if (playerHurtPaletteCounter == 0) {
+			set_sprite_palette(0,1, &playerPalette[4]);
+		}
+		playerHurtPaletteCounter++;
+		if (playerHurtPaletteCounter == PLAYERHURTPALETTETIME) {
+			playerHurt = 0;
+			set_sprite_palette(0,1, &playerPalette[0]);
+			playerHurtPaletteCounter = 0;
+
+		}
+	}
 }
 
 //1 if finished, 0 otherwise
@@ -797,7 +822,7 @@ void main(){
 	set_bkg_submap(0, 0, 20, 18, MapZeroPLN0, MapZeroWidth);
 
 
-	set_sprite_palette(0, 1, &spritePalette[0]); // loading 1 palette of 4 colors
+	set_sprite_palette(0, 1, &playerPalette[0]); // loading 1 palette of 4 colors
 
 	set_sprite_data(0, 16, playerTilesets[0]);
 
