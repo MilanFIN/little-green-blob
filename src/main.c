@@ -463,7 +463,7 @@ void movePlayer() {
 }
 
 
-void updateEntityPositions() {
+void updateEntityPositions(uint8_t force) {
 
 	int16_t xDiff = playerX - CENTERX;
 	int16_t yDiff = playerY - CENTERY - 32;
@@ -505,7 +505,7 @@ void updateEntityPositions() {
 	uint8_t map_pos_y = (uint8_t)(yDiff >> 3u);
 	
 	//x direction
-	if (map_pos_x != old_map_pos_x) {
+	if (map_pos_x != old_map_pos_x || force) {
 		if (xDiff < oldXDiff) {
 			VBK_REG = 1;
 			set_bkg_submap(map_pos_x, map_pos_y, 1, MIN(19u, MAPS[currentMap].height - map_pos_y), MAPS[currentMap].palettePlane, MAPS[currentMap].width);     
@@ -524,7 +524,7 @@ void updateEntityPositions() {
     }
 
 	//y direction
-	if (map_pos_y != old_map_pos_y) { 
+	if (map_pos_y != old_map_pos_y || force) { 
 		if (yDiff < oldYDiff) {
 			VBK_REG = 1;
 			set_bkg_submap(map_pos_x, map_pos_y, MIN(21u, MAPS[currentMap].width-map_pos_x), 1, MAPS[currentMap].palettePlane, MAPS[currentMap].width);
@@ -556,14 +556,15 @@ void startLevel() {
 
 	hp = maxHp;
 
-	uint16_t x = 0;
-	uint16_t y = 0;
+	uint16_t x = 0; // MAPS[currentMap].width*8
+	uint16_t y = 0;//MAPS[currentMap].height*8;
 
+	/*
 	VBK_REG = 1;
 	set_bkg_submap(0, 0, 20, 18, MAPS[currentMap].palettePlane, MAPS[currentMap].width);
 	VBK_REG = 0;
 	set_bkg_submap(0, 0, 20, 18, MAPS[currentMap].tilePlane, MAPS[currentMap].width);
-
+	*/
 
 
 
@@ -584,6 +585,18 @@ void startLevel() {
 	y *= 8;
 	playerXScaled = x << 3;
 	playerYScaled = y << 3;
+
+
+	
+	playerY = MAPS[currentMap].height*8+4;
+	for (uint16_t xScroll=MAPS[currentMap].width*8+4; xScroll >= x; xScroll--) {
+		playerX = xScroll;
+		updateEntityPositions(1);
+	}
+	for (uint16_t yScroll=MAPS[currentMap].height*8+4; yScroll >= y; yScroll--) {
+		playerY = yScroll;
+		updateEntityPositions(1);
+	}	
 	playerX = x;
 	playerY = y;
 
@@ -603,6 +616,8 @@ void startLevel() {
 			}
 		}
 	}
+
+	updateEntityPositions(1);
 
 }
 
@@ -861,7 +876,7 @@ void main(){
 
 			checkProjectileCollisions();
 
-			updateEntityPositions();
+			updateEntityPositions(0);
 
 			updateTraps();
 
