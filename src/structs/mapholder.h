@@ -21,7 +21,7 @@ const MapObj MAPS[2] = {
 	{Map01PLN0, Map01PLN1, Map01Width, Map01Height, 0}
 };
 
-uint8_t currentMap = 1;
+uint8_t currentMap = 0;
 
 
 const UWORD primaryBackgroundPalette[] = {

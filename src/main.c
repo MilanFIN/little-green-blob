@@ -552,6 +552,57 @@ void updateEntityPositions(uint8_t force) {
 
 }
 
+//shuffling to initialize bkg submap correctly
+void shufflePlayer(uint16_t x, uint16_t y) {
+
+	DISPLAY_OFF;
+
+	playerX = 0;
+	playerY = 0;
+	while (playerX < MAPS[currentMap].width*8 || playerY < MAPS[currentMap].height*8 ) {
+		if (playerX + 8 < MAPS[currentMap].width*8) {
+			playerX += 8;
+		}
+		if (playerX< MAPS[currentMap].width*8) {
+			playerX += 1;
+		}
+		if (playerY + 8 < MAPS[currentMap].height*8) {
+			playerY += 8;
+		}
+		if (playerY < MAPS[currentMap].height*8) {
+			playerY += 1;
+		}
+		updateEntityPositions(1);
+
+	}
+	
+	while (playerY > y || playerX > x) {
+
+		if (playerY - 8 > y) {
+			playerY -= 8;
+		}
+		else if (playerY > y) {
+			playerY--;
+		}
+		if (playerX - 8 > x) {
+			playerX -= 8;
+		}
+		else if (playerX > x) {
+			playerX--;
+		}
+		updateEntityPositions(1);
+
+	}
+	
+	playerX = x;
+	playerY = y;
+		
+	DISPLAY_ON;
+
+
+}
+
+
 void startLevel() {
 
 	hp = maxHp;
@@ -559,12 +610,12 @@ void startLevel() {
 	uint16_t x = 0; // MAPS[currentMap].width*8
 	uint16_t y = 0;//MAPS[currentMap].height*8;
 
-	/*
+	
 	VBK_REG = 1;
 	set_bkg_submap(0, 0, 20, 18, MAPS[currentMap].palettePlane, MAPS[currentMap].width);
 	VBK_REG = 0;
 	set_bkg_submap(0, 0, 20, 18, MAPS[currentMap].tilePlane, MAPS[currentMap].width);
-	*/
+	
 
 
 
@@ -587,19 +638,7 @@ void startLevel() {
 	playerYScaled = y << 3;
 
 
-	
-	playerY = MAPS[currentMap].height*8+4;
-	for (uint16_t xScroll=MAPS[currentMap].width*8+4; xScroll >= x; xScroll--) {
-		playerX = xScroll;
-		updateEntityPositions(1);
-	}
-	for (uint16_t yScroll=MAPS[currentMap].height*8+4; yScroll >= y; yScroll--) {
-		playerY = yScroll;
-		updateEntityPositions(1);
-	}	
-	playerX = x;
-	playerY = y;
-
+	shufflePlayer(x, y);
 
 
 	shouldBreak = 0;
