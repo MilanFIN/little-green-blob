@@ -732,6 +732,9 @@ void fire() {
 	if (framesSinceLastFire < fireDelay) {
 		return;
 	}
+	if (projectiles[oldestProjectile].active) {
+		return;
+	}
 
 
 	hp -= 10;
@@ -810,9 +813,14 @@ void checkProjectileCollisions() {
 	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
 
 		if (projectiles[i].active) {
-			if (!checkFloorCollision(projectiles[i].x, projectiles[i].y-4)) {
+			if (!checkFloorCollision(projectiles[i].x, projectiles[i].y)) {
+				projectiles[i].ySpeed = -PROJECTILEINITYSPEED;
+				continue;
+			}
+			if (!checkFloorCollision(projectiles[i].x-4, projectiles[i].y-4) || !checkFloorCollision(projectiles[i].x+4, projectiles[i].y-4)) {
 				removeProjectile(i);
 				continue;
+
 			}
 
 
