@@ -158,7 +158,9 @@ uint16_t onScreenX = 0;
 uint16_t onScreenY = 0;
 
 
-
+//how many times fall damage is bit shifted right before applying
+// (larger number for less dmg)
+uint8_t FALLDAMAGESCALE = 1;
 
 
 
@@ -382,7 +384,7 @@ void movePlayer() {
 				putPlayerOnGround(sideEdge);
 				playerHurt = 1;
 				playerHurtPaletteTime = uClamp(ySpeed >> 4, 1, 10);
-				hp -= ySpeed >> 2;
+				hp -= ySpeed >> FALLDAMAGESCALE;
 			}
 
 			onGround = 1;
@@ -420,7 +422,7 @@ void movePlayer() {
 	}
 
 	if (onGround && xSpeed != 0) {
-		hp -= 2;
+		hp -= 1;
 	}
 
 	if (inWater) {
@@ -918,6 +920,10 @@ void main(){
 			if (joydata & J_B && !(previousJoydata & J_B)) {
 				fire();
 			}
+			if (joydata & J_SELECT && !(previousJoydata & J_SELECT)) {
+				startLevel();
+			}
+
 
 			moveProjectiles();
 

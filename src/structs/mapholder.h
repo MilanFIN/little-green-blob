@@ -2,6 +2,7 @@
 
 #include "map00.h"
 #include "map01.h"
+#include "map02.h"
 
 
 
@@ -14,14 +15,16 @@ typedef struct MapObj {
 }MapObj;
 
 
-uint8_t MAPCOUNT = 2;
+uint8_t MAPCOUNT = 3;
 
-const MapObj MAPS[2] = {
+const MapObj MAPS[3] = {
     {Map00PLN0, Map00PLN1, Map00Width, Map00Height, 0},
-	{Map01PLN0, Map01PLN1, Map01Width, Map01Height, 0}
+	{Map01PLN0, Map01PLN1, Map01Width, Map01Height, 0},
+	{Map02PLN0, Map02PLN1, Map02Width, Map02Height, 0}
+
 };
 
-uint8_t currentMap = 0;
+uint8_t currentMap = 2;
 
 
 const UWORD primaryBackgroundPalette[] = {
