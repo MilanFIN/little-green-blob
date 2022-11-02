@@ -9,6 +9,7 @@ typedef struct ProjectileObj {
 	int16_t xSpeed;
 	int16_t ySpeed;
 	uint8_t tile;
+	uint16_t framesSinceActivation;
 };
 
 
@@ -23,9 +24,11 @@ const uint8_t PROJECTILECOUNT = 3;
 
 const uint16_t fireDelay = 20; //frames
 
-const int16_t PROJECTILEINITXSPEED= 100;
+const int16_t PROJECTILEINITXSPEED= 50; //100
 
 const int16_t PROJECTILEINITYSPEED= 75;
+
+const uint16_t PROJECTILEACTIVATIONCOOLDOWN = 30;
 
 
 uint8_t oldestProjectile = 0;

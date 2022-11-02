@@ -494,7 +494,13 @@ void updateEntityPositions(uint8_t force) {
 			//projectile positions
 			uint16_t projectileScreenX = projectiles[i].x - xDiff;
 			uint16_t projectileScreenY = projectiles[i].y - yDiff;
-			move_sprite(projectiles[i].tile, projectileScreenX, projectileScreenY +4);
+			//position probably overflows at values > 256
+			if (projectileScreenX > 0 && projectileScreenX < 200 && projectileScreenY > 0 && projectileScreenY < 200) {
+				move_sprite(projectiles[i].tile, projectileScreenX+4, projectileScreenY);
+			}
+			else {
+				move_sprite(projectiles[i].tile, 220, 220);
+			}
 		}
 
 	}
@@ -607,10 +613,24 @@ void shufflePlayer(uint16_t x, uint16_t y) {
 
 void startLevel() {
 
+	//red/blue switch for switchblocks, 0 for red
+	uint8_t switchState = 0;
+	//raises/lowers spike traps, 0 for down
+	uint8_t timeTrapState = 1;
+
+
+
+	initProjectiles();
 	hp = maxHp;
 
 	uint16_t x = 0; // MAPS[currentMap].width*8
 	uint16_t y = 0;//MAPS[currentMap].height*8;
+
+	set_bkg_palette(0, 8, &primaryBackgroundPalette[0]);
+	
+
+	set_bkg_data(0, 14, Tileset); 
+	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
 
 	
 	VBK_REG = 1;
@@ -664,16 +684,18 @@ void startLevel() {
 
 void initProjectiles() {
 	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
-		projectiles[i].active == 0;	
+		projectiles[i].active = 0;	
 		projectiles[i].x = 200;
 		projectiles[i].y = 200;
 		projectiles[i].scaledX = 200 << 3;
 		projectiles[i].scaledY = 200 << 3;
 		projectiles[i].tile = 10 + i;
+		projectiles[i].framesSinceActivation = 0;
 
 
 		set_sprite_tile(projectiles[i].tile, 0x10);
 		set_sprite_prop(projectiles[i].tile,1); //1 (2nd) palette
+		move_sprite(projectiles[i].tile, 200, 200);
 
 	}
 }
@@ -748,7 +770,9 @@ void fire() {
 	projectiles[oldestProjectile].scaledX = (playerX + 4)<<3;
 	projectiles[oldestProjectile].scaledY = (playerY -8)<<3;
 
-	//TODO: korjaa nopeuden skaalaus
+	projectiles[oldestProjectile].framesSinceActivation = 0;
+	
+
 	if (xDir > 0) {
 		projectiles[oldestProjectile].xSpeed = PROJECTILEINITXSPEED + xSpeed;
 	}
@@ -788,10 +812,14 @@ void moveProjectiles() {
 			projectiles[i].x = projectiles[i].scaledX >> 3;
 			projectiles[i].y = projectiles[i].scaledY >> 3;
 
+			projectiles[i].framesSinceActivation++;
+
 		
-			if  (i16abs(playerX - projectiles[i].x) > 200 || i16abs(playerY - projectiles[i].y) > 200) {
+			
+			if  (i16abs(playerX - projectiles[i].x) > 1000 || i16abs(playerY - projectiles[i].y) > 1000) {
 				removeProjectile(i);
 			}
+			
 
 
 		}
@@ -800,6 +828,8 @@ void moveProjectiles() {
 }
 
 void switchBlocks() {
+
+
 	if (switchState) {
 		switchState = 0;
 		set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
@@ -815,21 +845,25 @@ void checkProjectileCollisions() {
 	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
 
 		if (projectiles[i].active) {
-			if (!checkFloorCollision(projectiles[i].x, projectiles[i].y)) {
-				projectiles[i].ySpeed = -PROJECTILEINITYSPEED;
-				continue;
+			if (!checkFloorCollision(projectiles[i].x, projectiles[i].y+3)) {
+				projectiles[i].ySpeed = - (PROJECTILEINITYSPEED >> 1);
 			}
-			if (!checkFloorCollision(projectiles[i].x-4, projectiles[i].y-4) || !checkFloorCollision(projectiles[i].x+4, projectiles[i].y-4)) {
+			if (!checkFloorCollision(projectiles[i].x-3, projectiles[i].y-4) || !checkFloorCollision(projectiles[i].x+3, projectiles[i].y-4)) {
 				removeProjectile(i);
 				continue;
 
 			}
 
 
-			uint16_t ind = MAPS[currentMap].width*((projectiles[i].y-4)>>3) + ((projectiles[i].x)>>3);
+			uint16_t ind = MAPS[currentMap].width*((projectiles[i].y-3)>>3) + ((projectiles[i].x)>>3);
+
 			if (MAPS[currentMap].tilePlane[ind] == SWITCHTILE) {
-				switchBlocks();
-				removeProjectile(i);
+				
+				if (projectiles[i].framesSinceActivation > PROJECTILEACTIVATIONCOOLDOWN) {
+					switchBlocks();
+
+					projectiles[i].framesSinceActivation = 0;
+				}
 			} 
 
 		}
@@ -873,11 +907,6 @@ void main(){
 	SHOW_BKG;
 
 
-	set_bkg_palette(0, 5, &primaryBackgroundPalette[0]);
-	
-
-	set_bkg_data(0, 14, Tileset); 
-	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
 
 
 	/*

@@ -84,9 +84,9 @@
 
 /* Gameboy Color palette 5 */
 #define TilesetCGBPal5c0 6076
-#define TilesetCGBPal5c1 8935
-#define TilesetCGBPal5c2 6596
-#define TilesetCGBPal5c3 5344
+#define TilesetCGBPal5c1 16928
+#define TilesetCGBPal5c2 10560
+#define TilesetCGBPal5c3 0
 
 /* Gameboy Color palette 6 */
 #define TilesetCGBPal6c0 6076
