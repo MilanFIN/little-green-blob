@@ -233,6 +233,8 @@ inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 	}
 	
 	else {
+		//
+		/*
 		if (MAPS[currentMap].tilePlane[ind] == SWITCHBLOCKS[0] && switchState == 0) {
 			return 0;
 		}
@@ -245,6 +247,7 @@ inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 		if (MAPS[currentMap].tilePlane[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
 			return 0;
 		}
+		*/
 		return 1;
 	}
 }
@@ -569,13 +572,13 @@ void shufflePlayer(uint16_t x, uint16_t y) {
 	playerY = 0;
 	while (playerX < MAPS[currentMap].width*8 || playerY < MAPS[currentMap].height*8 ) {
 		if (playerX + 8 < MAPS[currentMap].width*8) {
-			playerX += 8;
+			playerX += 1; //8
 		}
 		if (playerX< MAPS[currentMap].width*8) {
 			playerX += 1;
 		}
 		if (playerY + 8 < MAPS[currentMap].height*8) {
-			playerY += 8;
+			playerY += 1; //8
 		}
 		if (playerY < MAPS[currentMap].height*8) {
 			playerY += 1;
@@ -587,13 +590,13 @@ void shufflePlayer(uint16_t x, uint16_t y) {
 	while (playerY > y || playerX > x) {
 
 		if (playerY - 8 > y) {
-			playerY -= 8;
+			playerY -= 8; //8
 		}
 		else if (playerY > y) {
 			playerY--;
 		}
 		if (playerX - 8 > x) {
-			playerX -= 8;
+			playerX -= 8; //8
 		}
 		else if (playerX > x) {
 			playerX--;
@@ -763,6 +766,15 @@ void fire() {
 
 	hp -= 10;
 	framesSinceLastFire = 0;
+
+
+	uint16_t ind = MAPS[currentMap].width*((playerY - 3)>>3) + ((playerX)>>3);
+
+	if (MAPS[currentMap].tilePlane[ind] == SWITCHTILE) {
+		switchBlocks();
+		return;
+	}
+
 	
 	projectiles[oldestProjectile].active = 1;
 	projectiles[oldestProjectile].x = playerX + 4;
