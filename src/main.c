@@ -439,13 +439,7 @@ void movePlayer() {
 	playerYScaled += ySpeed >> 3;
 	playerY = playerYScaled >> 3;
 
-	if (!checkObstacleCollision(playerX - sideEdge, playerY - (hatHeight >> 1))
-		|| !checkObstacleCollision(playerX - sideEdge, playerY-1) 
-		|| !checkObstacleCollision(playerX + sideEdge, playerY - (hatHeight >> 1))
-		|| !checkObstacleCollision(playerX + sideEdge, playerY-1) )
-	{
-		hp = 0;
-	}
+
 
 
 	//tile as in vram tiles for player tileset
@@ -462,7 +456,13 @@ void movePlayer() {
 		set_sprite_tile(1,  2+ (playerFrame << 2));
 	}
 
-
+	if (!checkObstacleCollision(playerX - sideEdge +1, playerY - (hatHeight >> 1) +1)
+		|| !checkObstacleCollision(playerX - sideEdge +1, playerY-1) 
+		|| !checkObstacleCollision(playerX + sideEdge -1, playerY - (hatHeight >> 1)+1)
+		|| !checkObstacleCollision(playerX + sideEdge +1, playerY-1) )
+	{
+		hp = 0;
+	}
 	
 
 }
@@ -622,6 +622,8 @@ void startLevel() {
 	uint8_t timeTrapState = 1;
 
 
+	xSpeed = 0;
+	ySpeed = 0;
 
 	initProjectiles();
 	hp = maxHp;
@@ -742,6 +744,9 @@ uint8_t checkFinish() {
 
 void playDeathAnimation() {
 	set_sprite_palette(0, 1, &playerPalette[0]); 
+	set_sprite_tile(0,  (playerFrame << 2));
+	set_sprite_tile(1,  2+ (playerFrame << 2));
+
 	for(uint8_t i = 0; i < 5;i++) {
 		move_sprite(0, 200, 200);
 		move_sprite(1, 200, 200);
@@ -867,9 +872,11 @@ void checkProjectileCollisions() {
 			}
 
 
-			uint16_t ind = MAPS[currentMap].width*((projectiles[i].y-3)>>3) + ((projectiles[i].x)>>3);
+			uint16_t ind = MAPS[currentMap].width*((projectiles[i].y-3)>>3) + (((projectiles[i].x-3)>>3));
+			uint16_t ind2 = MAPS[currentMap].width*((projectiles[i].y-3)>>3) + (((projectiles[i].x+3)>>3));
 
-			if (MAPS[currentMap].tilePlane[ind] == SWITCHTILE) {
+			if (MAPS[currentMap].tilePlane[ind] == SWITCHTILE || 
+				MAPS[currentMap].tilePlane[ind2] == SWITCHTILE) {
 				
 				if (projectiles[i].framesSinceActivation > PROJECTILEACTIVATIONCOOLDOWN) {
 					switchBlocks();
