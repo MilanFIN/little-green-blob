@@ -8,8 +8,8 @@
 #include "map05.h"
 #include "map06.h"
 #include "map07.h"
-
 */
+
 #include "map08.h"
 
 
@@ -23,7 +23,7 @@ typedef struct MapObj {
 }MapObj;
 
 
-uint8_t MAPCOUNT = 1;
+uint8_t MAPCOUNT = 9;
 
 const MapObj MAPS[1] = {
 	/*
@@ -33,12 +33,11 @@ const MapObj MAPS[1] = {
 	{Map03PLN0, Map03PLN1, Map03Width, Map03Height, 0},
 	{Map04PLN0, Map04PLN1, Map04Width, Map04Height, 0},
 	{Map05PLN0, Map05PLN1, Map05Width, Map05Height, 0},
-	{Map06PLN0, Map06PLN1, Map06Width, Map06Height, 0}
-	{Map07PLN0, Map07PLN1, Map07Width, Map07Height, 0}
-
+	{Map06PLN0, Map06PLN1, Map06Width, Map06Height, 0},
+	{Map07PLN0, Map07PLN1, Map07Width, Map07Height, 0},
 	*/
+	
 	{Map08PLN0, Map08PLN1, Map08Width, Map08Height, 0}
-
 };
 
 uint8_t currentMap = 0;

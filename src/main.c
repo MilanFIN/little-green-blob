@@ -137,6 +137,10 @@ uint8_t inWater = 0;
 uint8_t jumping = 0;
 uint8_t jumpReleased = 1;
 
+//nonzero value means, that player should fall through floor only tiles (aka single directional platforms)
+uint8_t dropDownFrames = 0;
+const uint8_t DROPDOWNDURATION = 20;
+
 //will be set to the tile index that has the finish
 // initialized during level load
 uint16_t finishTileIndex = 0;
@@ -163,6 +167,8 @@ uint16_t onScreenY = 0;
 uint8_t FALLDAMAGESCALE = 1;
 
 
+uint16_t hatHeight;
+uint16_t sideEdge;
 
 
 
@@ -314,9 +320,9 @@ void putPlayerOnGround(uint16_t sideEdge) {
 
 
 
-void movePlayer() {
-	uint16_t hatHeight = (hp >> 6) + 3;
-	uint16_t sideEdge = (hp >> 7) + 2;
+void moveHorizontal() {
+	hatHeight = (hp >> 6) + 3;
+	sideEdge = (hp >> 7) + 2;
 
 	int16_t acceleration = (onGround) ? groundAcceleration : airAcceleration;
 
@@ -367,34 +373,59 @@ void movePlayer() {
 	}
 
 
-
 	playerX = playerXScaled >> 3;
+
+
+}
+
+void moveVertical() {
 
 
 	if (ySpeed >= 0) {
 		//player bottom
 		uint16_t newPlayerY = (playerYScaled + (ySpeed>>3)) >> 3;
 
-		if (checkFloorCollision(playerX, newPlayerY) && checkFloorCollision(playerX+ sideEdge -1, newPlayerY) && checkFloorCollision(playerX-sideEdge + 1, newPlayerY)) {
-			addGravity();
-			onGround = 0;
-			set_sprite_tile(0, 12);
-			set_sprite_tile(1,  14);
+		//FALLING DOWN CHECKS
+		//first check if player shold drop through a one way platform (a+down)
+		if (dropDownFrames > 0) {
+			if (checkRoofCollision(playerX, newPlayerY) && checkRoofCollision(playerX+ sideEdge -1, newPlayerY) && checkRoofCollision(playerX-sideEdge + 1, newPlayerY)) { 
+				addGravity();
+				onGround = 0;
+				dropDownFrames--;
+				set_sprite_tile(0, 12);
+				set_sprite_tile(1,  14);
 
+			}
+			else {
+				onGround = 1;
+			}
 		}
+		//regular gravity check
 		else {
+			if (checkFloorCollision(playerX, newPlayerY) && checkFloorCollision(playerX+ sideEdge -1, newPlayerY) && checkFloorCollision(playerX-sideEdge + 1, newPlayerY)) {
+				addGravity();
+				onGround = 0;
+				set_sprite_tile(0, 12);
+				set_sprite_tile(1,  14);
+			}
+			//on solid ground
+			else {
+				onGround = 1;
+			}
+		}
+		if (onGround) {
 			if (ySpeed != 0) {
+				//when hitting ground, player might be a couple pixels off the ground
 				putPlayerOnGround(sideEdge);
 				playerHurt = 1;
 				playerHurtPaletteTime = uClamp(ySpeed >> 4, 1, 10);
 				hp -= ySpeed >> FALLDAMAGESCALE;
 			}
-
-			onGround = 1;
 			jumping = 0;
 			ySpeed = 0;
 
 		}
+
 	}
 
 	if (ySpeed < 0) {
@@ -407,7 +438,7 @@ void movePlayer() {
 		addGravity();
 	}
 
-	if (joydata & J_A) {
+	if (joydata & J_A && !(joydata & J_DOWN)) {
 		if (onGround && !jumping && jumpReleased) {
 			ySpeed = -JUMPPOWER;
 			jumping = 1;
@@ -456,17 +487,20 @@ void movePlayer() {
 		set_sprite_tile(1,  2+ (playerFrame << 2));
 	}
 
-	if (!checkObstacleCollision(playerX - sideEdge +1, playerY - (hatHeight >> 1) +1)
-		|| !checkObstacleCollision(playerX - sideEdge +1, playerY-1) 
-		|| !checkObstacleCollision(playerX + sideEdge -1, playerY - (hatHeight >> 1)+1)
-		|| !checkObstacleCollision(playerX + sideEdge +1, playerY-1) )
-	{
-		hp = 0;
-	}
 	
 
 }
 
+void checkTrapCollision() {
+	if (!checkObstacleCollision(playerX - sideEdge +1, playerY - (hatHeight >> 1) +1)
+	|| !checkObstacleCollision(playerX - sideEdge +1, playerY-1) 
+	|| !checkObstacleCollision(playerX + sideEdge -1, playerY - (hatHeight >> 1)+1)
+	|| !checkObstacleCollision(playerX + sideEdge +1, playerY-1) )
+	{
+		hp = 0;
+	}
+
+}
 
 void updateEntityPositions(uint8_t force) {
 
@@ -961,7 +995,9 @@ void main(){
 			previousJoydata = joydata;
 			joydata = joypad();
 
-			movePlayer();
+			moveHorizontal();
+			moveVertical();
+			checkTrapCollision();
 
 			animatePlayer();
 
@@ -970,6 +1006,9 @@ void main(){
 			}
 			if (joydata & J_SELECT && !(previousJoydata & J_SELECT)) {
 				startLevel();
+			}
+			if ((joydata & J_A && joydata & J_DOWN) && !(previousJoydata & J_A && previousJoydata & J_DOWN)) {
+				dropDownFrames = DROPDOWNDURATION;
 			}
 
 
