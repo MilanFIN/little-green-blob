@@ -1,5 +1,3 @@
-#pragma bank 195
-
 /*
 
  MAP05.C

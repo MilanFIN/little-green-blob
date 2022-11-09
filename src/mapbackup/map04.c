@@ -1,5 +1,3 @@
-#pragma bank 194
-
 /*
 
  MAP04.C

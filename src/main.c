@@ -1,4 +1,6 @@
 #include <gb/gb.h>  
+#include <gbdk/platform.h>
+
 #include <stdio.h>
 #include <gb/cgb.h>
 
@@ -195,6 +197,9 @@ inline int16_t i16abs(int16_t value) {
 
 
 
+/*
+
+
 //returns true if there is no collision in a point
 inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
 	uint16_t ind = MAPS[currentMap].width*((y)>>3) + ((x)>>3);
@@ -239,21 +244,6 @@ inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 	}
 	
 	else {
-		//
-		/*
-		if (MAPS[currentMap].tilePlane[ind] == SWITCHBLOCKS[0] && switchState == 0) {
-			return 0;
-		}
-		if (MAPS[currentMap].tilePlane[ind] == SWITCHBLOCKS[1] && switchState == 1) {
-			return 0;
-		}
-		if (MAPS[currentMap].tilePlane[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
-			return 0;
-		}		
-		if (MAPS[currentMap].tilePlane[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
-			return 0;
-		}
-		*/
 		return 1;
 	}
 }
@@ -940,6 +930,7 @@ void updateTraps() {
 
 }
 
+*/
 void main(){
 
 
@@ -962,13 +953,6 @@ void main(){
 
 
 
-	/*
-	VBK_REG = 1;
-	set_bkg_submap(0, 0, 20, 18, MapZeroPLN1, MapZeroWidth);
-	VBK_REG = 0;
-	set_bkg_submap(0, 0, 20, 18, MapZeroPLN0, MapZeroWidth);
-	*/
-
 	set_sprite_palette(0, 1, &playerPalette[0]); // loading 1 palette of 4 colors
 
 	set_sprite_data(0, 16, playerTilesets[0]);
@@ -985,8 +969,32 @@ void main(){
 	set_sprite_prop(1,0); //also 0th
 
 
+
+	//debug
+	set_bkg_palette(0, 8, &primaryBackgroundPalette[0]);
+	set_bkg_data(0, 14, Tileset); 
+	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 	
+
+
+	uint8_t _saved_bank = _current_bank;
+	SWITCH_ROM(currentMap);
+	//SWITCH_ROM(BANK(currentMap));
+
+	VBK_REG = 1;
+	set_bkg_submap(0, 0, 20, 18, Map09PLN1, 40);
+	VBK_REG = 0;
+	set_bkg_submap(0, 0, 20, 18, Map09PLN0, 40);
+
+	SWITCH_ROM(_saved_bank);
+
+
+
 	while(1) {
 
+		wait_vbl_done();
+
+
+		/*
 		startLevel();
 		initProjectiles();
 
@@ -1036,6 +1044,7 @@ void main(){
 			
 
 		}
+		*/
 
 	}
 	

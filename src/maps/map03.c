@@ -1,3 +1,5 @@
+#pragma bank 192
+
 /*
 
  MAP03.C

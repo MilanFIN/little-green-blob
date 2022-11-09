@@ -10,7 +10,7 @@
 #include "map07.h"
 */
 
-#include "map08.h"
+#include "map09.h"
 
 
 
@@ -19,14 +19,16 @@ typedef struct MapObj {
 	const unsigned char* palettePlane;
 	const uint16_t width;
 	const uint16_t height;
-	uint8_t title;
+	uint8_t bank;
 }MapObj;
 
 
 uint8_t MAPCOUNT = 9;
 
-const MapObj MAPS[1] = {
 	/*
+
+const MapObj MAPS[1] = {
+	
     {Map00PLN0, Map00PLN1, Map00Width, Map00Height, 0},
 	{Map01PLN0, Map01PLN1, Map01Width, Map01Height, 0},
 	{Map02PLN0, Map02PLN1, Map02Width, Map02Height, 0},
@@ -35,12 +37,14 @@ const MapObj MAPS[1] = {
 	{Map05PLN0, Map05PLN1, Map05Width, Map05Height, 0},
 	{Map06PLN0, Map06PLN1, Map06Width, Map06Height, 0},
 	{Map07PLN0, Map07PLN1, Map07Width, Map07Height, 0},
-	*/
+	{Map08PLN0, Map08PLN1, Map08Width, Map08Height, 0},
 	
-	{Map08PLN0, Map08PLN1, Map08Width, Map08Height, 0}
+	{Map09PLN0, Map09PLN1, Map09Width, Map09Height, 9}
 };
+	*/
 
-uint8_t currentMap = 0;
+
+uint8_t currentMap = 9;
 
 
 const UWORD primaryBackgroundPalette[] = {

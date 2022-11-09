@@ -1,5 +1,3 @@
-#pragma bank 198
-
 /*
 
  MAP08.C

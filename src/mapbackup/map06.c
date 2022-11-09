@@ -1,5 +1,3 @@
-#pragma bank 196
-
 /*
 
  MAP06.C

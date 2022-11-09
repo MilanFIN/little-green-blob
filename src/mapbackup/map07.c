@@ -1,5 +1,3 @@
-#pragma bank 197
-
 /*
 
  MAP07.C

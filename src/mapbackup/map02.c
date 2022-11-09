@@ -1,5 +1,3 @@
-#pragma bank 191
-
 /*
 
  MAP02.C
