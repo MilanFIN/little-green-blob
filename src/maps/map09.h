@@ -23,6 +23,17 @@
 #ifndef __map09_h_INCLUDE
 #define __map09_h_INCLUDE
 
+// Reference for a banked function
+void func_1() BANKED;
+BANKREF_EXTERN(func_1)
+
+
+const unsigned char* getMap09TilePlane() BANKED;
+BANKREF_EXTERN(getMap09TilePlane)
+const unsigned char* getMap09PalettePlane() BANKED;
+BANKREF_EXTERN(getMap09PalettePlane)
+
+
 extern const uint8_t Map09Width;
 BANKREF_EXTERN(Map09Width)
 extern const uint8_t Map09Height;

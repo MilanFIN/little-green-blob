@@ -9,6 +9,7 @@
 #include "map06.h"
 #include "map07.h"
 */
+#include <gbdk/platform.h>
 
 #include "map09.h"
 
@@ -19,14 +20,14 @@ typedef struct MapObj {
 	const unsigned char* palettePlane;
 	const uint16_t width;
 	const uint16_t height;
-	uint8_t bank;
+	const uint8_t bank;
 }MapObj;
 
 
 uint8_t MAPCOUNT = 9;
 
-	/*
 
+/*
 const MapObj MAPS[1] = {
 	
     {Map00PLN0, Map00PLN1, Map00Width, Map00Height, 0},
@@ -40,9 +41,9 @@ const MapObj MAPS[1] = {
 	{Map08PLN0, Map08PLN1, Map08Width, Map08Height, 0},
 	
 	{Map09PLN0, Map09PLN1, Map09Width, Map09Height, 9}
+	
 };
-	*/
-
+*/
 
 uint8_t currentMap = 9;
 

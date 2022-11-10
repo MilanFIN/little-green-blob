@@ -1,3 +1,5 @@
+#include <gbdk/platform.h>
+
 /*
 
  MAP08.H
@@ -19,6 +21,9 @@
 */
 #ifndef __map08_h_INCLUDE
 #define __map08_h_INCLUDE
+
+
+
 
 #define Map08Width 20
 #define Map08Height 40

@@ -3,10 +3,15 @@
 
 #pragma bank 9
 
+
+
+
 BANKREF(Map09Width)
 const uint8_t Map09Width = 40;
 BANKREF(Map09Height)
 const uint8_t Map09Height = 24;
+
+
 
 
 BANKREF(Map09PLN0)
@@ -212,3 +217,14 @@ const unsigned char Map09PLN1[] =
 };
 
 /* End of MAP09.C */
+
+
+BANKREF(getMap09TilePlane)
+unsigned char* getMap09TilePlane() __banked {
+    return &Map09PLN0;
+}
+BANKREF(getMap09PalettePlane)
+unsigned char* getMap09PalettePlane() __banked {
+    return &Map09PLN1;
+}
+

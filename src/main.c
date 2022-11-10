@@ -1,5 +1,6 @@
 #include <gb/gb.h>  
 #include <gbdk/platform.h>
+#include <gbdk/far_ptr.h>
 
 #include <stdio.h>
 #include <gb/cgb.h>
@@ -931,6 +932,8 @@ void updateTraps() {
 }
 
 */
+
+
 void main(){
 
 
@@ -977,13 +980,23 @@ void main(){
 
 
 	uint8_t _saved_bank = _current_bank;
-	SWITCH_ROM(currentMap);
+
+	//SWITCH_ROM(currentMap);
 	//SWITCH_ROM(BANK(currentMap));
 
+	//printf("%d", tilePlane);
+
+	SWITCH_ROM(currentMap);
+	FAR_PTR map09_tileFarPtr = to_far_ptr(getMap09TilePlane, BANK(getMap09TilePlane));
+	FAR_PTR map09_PaletteFarPtr = to_far_ptr(getMap09PalettePlane, BANK(getMap09PalettePlane));
+
+	const unsigned char* tiles = FAR_CALL(map09_tileFarPtr,uint16_t (*)(void));
+	const unsigned char* palette = FAR_CALL(map09_PaletteFarPtr,uint16_t (*)(void));
+
 	VBK_REG = 1;
-	set_bkg_submap(0, 0, 20, 18, Map09PLN1, 40);
+	set_bkg_submap(0, 0, 20, 18, palette, 40); //Map09PLN1
 	VBK_REG = 0;
-	set_bkg_submap(0, 0, 20, 18, Map09PLN0, 40);
+	set_bkg_submap(0, 0, 20, 18, tiles, 40);
 
 	SWITCH_ROM(_saved_bank);
 
