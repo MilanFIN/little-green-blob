@@ -236,23 +236,6 @@ inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
 }
 
 
-inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
-	uint16_t ind = MAPS[currentMap].width*((y)>>3) + ((x)>>3);
-	uint8_t roof = 0;
-	for (uint8_t i=0; i < ROOFTILECOUNT; i++) {
-		if (MAPS[currentMap].tilePlane[ind] == ROOFTILES[i]) {
-			roof = 1;
-		} 
-	}
-	if (roof) {
-		return 0;
-	}
-	
-	else {
-		return 1;
-	}
-}
-
 
 //returns 1, if player should stay alive
 inline uint8_t checkObstacleCollision(uint16_t x, uint16_t y) {
@@ -315,63 +298,7 @@ void putPlayerOnGround(uint16_t sideEdge) {
 
 
 
-void moveHorizontal() {
-	hatHeight = (hp >> 6) + 3;
-	sideEdge = (hp >> 7) + 2;
 
-	int16_t acceleration = (onGround) ? groundAcceleration : airAcceleration;
-
-	if (joydata & J_LEFT) {
-			xDir = -1;
-			xSpeed -= acceleration;
-	}
-	else if (joydata & J_RIGHT) {
-			xDir = 1;
-			xSpeed += acceleration;
-	}
-	else {
-		if (xSpeed > 0) {
-			if (xSpeed < acceleration) {
-				xSpeed = 0;
-			}
-			else {
-				xSpeed -= acceleration;
-			}
-		}
-		if (xSpeed < 0) {
-			if (xSpeed > acceleration) {
-				xSpeed = 0;
-			}
-			else {
-				xSpeed += acceleration;
-			}
-		}
-	}
-	xSpeed = i16Clamp(xSpeed, -maxXSpeed, maxXSpeed);
-
-
-	if (xSpeed < 0) {
-		if (checkRoofCollision(playerX - sideEdge, playerY - (hatHeight >> 1)) && checkRoofCollision(playerX - sideEdge, playerY-1) && checkRoofCollision(playerX - sideEdge, playerY - hatHeight)) {
-			playerXScaled += -((-xSpeed) >> 3);
-		}
-		else {
-			xSpeed = 0;
-		}
-	}
-	if (xSpeed > 0) {
-		if (checkRoofCollision(playerX + sideEdge, playerY - (hatHeight >> 1)) && checkRoofCollision(playerX + sideEdge, playerY-1) && checkRoofCollision(playerX + sideEdge, playerY - hatHeight)) {
-			playerXScaled += xSpeed >> 3;
-		}
-		else {
-			xSpeed = 0;
-		}
-	}
-
-
-	playerX = playerXScaled >> 3;
-
-
-}
 
 void moveVertical() {
 
@@ -706,6 +633,86 @@ void updateTraps() {
 
 */
 
+
+
+//presumes we are already in mapbank
+inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
+	
+	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
+	uint8_t roof = 0;
+	for (uint8_t i=0; i < ROOFTILECOUNT; i++) {
+		if (mapTiles[ind] == ROOFTILES[i]) {
+			roof = 1;
+		} 
+	}
+	if (roof) {
+		return 0;
+	}
+	
+	else {
+
+		return 1;
+	}
+}
+
+void moveHorizontal() {
+	hatHeight = (hp >> 6) + 3;
+	sideEdge = (hp >> 7) + 2;
+
+	int16_t acceleration = (onGround) ? groundAcceleration : airAcceleration;
+
+	if (joydata & J_LEFT) {
+			xDir = -1;
+			xSpeed -= acceleration;
+	}
+	else if (joydata & J_RIGHT) {
+			xDir = 1;
+			xSpeed += acceleration;
+	}
+	else {
+		if (xSpeed > 0) {
+			if (xSpeed < acceleration) {
+				xSpeed = 0;
+			}
+			else {
+				xSpeed -= acceleration;
+			}
+		}
+		if (xSpeed < 0) {
+			if (xSpeed > acceleration) {
+				xSpeed = 0;
+			}
+			else {
+				xSpeed += acceleration;
+			}
+		}
+	}
+	xSpeed = i16Clamp(xSpeed, -maxXSpeed, maxXSpeed);
+
+
+	_saved_bank = _current_bank;
+	SWITCH_ROM(mapBank);
+	if (xSpeed < 0) {
+		if (checkRoofCollision(playerX - sideEdge, playerY - (hatHeight >> 1)) && checkRoofCollision(playerX - sideEdge, playerY-1) && checkRoofCollision(playerX - sideEdge, playerY - hatHeight)) {
+			playerXScaled += -((-xSpeed) >> 3);
+		}
+		else {
+			xSpeed = 0;
+		}
+	}
+	if (xSpeed > 0) {
+		if (checkRoofCollision(playerX + sideEdge, playerY - (hatHeight >> 1)) && checkRoofCollision(playerX + sideEdge, playerY-1) && checkRoofCollision(playerX + sideEdge, playerY - hatHeight)) {
+			playerXScaled += xSpeed >> 3;
+		}
+		else {
+			xSpeed = 0;
+		}
+	}
+	SWITCH_ROM(_saved_bank);
+
+
+	playerX = playerXScaled >> 3;
+}
 void updateEntityPositions(uint8_t force) {
 
 	_saved_bank = _current_bank;
@@ -1003,6 +1010,7 @@ void main(){
 	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 	
 
 
+	/*
 	_saved_bank = _current_bank;
 	SWITCH_ROM(mapBank);
 	VBK_REG = 1;
@@ -1010,7 +1018,7 @@ void main(){
 	VBK_REG = 0;
 	set_bkg_submap(0, 0, 20, 18, mapTiles, mapWidth);
 	SWITCH_ROM(_saved_bank);
-
+	*/
 
 
 	while(1) {
@@ -1019,18 +1027,20 @@ void main(){
 
 		
 		startLevel();
-		//initProjectiles();
 
 		while(1) {
 			wait_vbl_done();
 
-			/*
+			
 			previousJoydata = joydata;
 			joydata = joypad();
 
 			moveHorizontal();
-			moveVertical();
-			checkTrapCollision();
+			updateEntityPositions(0);
+
+//			moveVertical();
+/*
+//			checkTrapCollision();
 
 			animatePlayer();
 
@@ -1049,7 +1059,6 @@ void main(){
 
 			checkProjectileCollisions();
 
-			updateEntityPositions(0);
 
 			updateTraps();
 
