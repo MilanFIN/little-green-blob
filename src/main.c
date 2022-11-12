@@ -14,6 +14,7 @@
 
 
 #include "mapholder.h"
+#include "banked.h"
 
 //#include "playertiles.h"
 //#include "playerjumptiles.h"
@@ -40,23 +41,21 @@
 // alas + a pudottautuu?
 
 
-unsigned char FLOORTILES[2] = {0x01, 0x06}; 
-uint8_t FLOORTILECOUNT = 2;
-unsigned char ROOFTILES[1] = {0x01}; 
-uint8_t ROOFTILECOUNT = 1;
-unsigned char OBSTACLETILES[1] = {0x07};
-uint8_t OBSTACLECOUNT = 1;
-unsigned char SWITCHBLOCKS[2] = {0x08, 0x09}; 
-uint8_t SWITCHTILE = 0x0a;
-unsigned char TIMETRAPBLOCKS[1] = {0x0b}; 
-unsigned char TIMEPLATFORMBLOCKS[2] = {0x0c, 0x0d}; 
+const unsigned char FLOORTILES[2] = {0x01, 0x06}; 
+const uint8_t FLOORTILECOUNT = 2;
+const unsigned char ROOFTILES[1] = {0x01}; 
+const uint8_t ROOFTILECOUNT = 1;
+const unsigned char OBSTACLETILES[1] = {0x07};
+const uint8_t OBSTACLECOUNT = 1;
+const unsigned char SWITCHBLOCKS[2] = {0x08, 0x09}; 
+const uint8_t SWITCHTILE = 0x0a;
+const unsigned char TIMETRAPBLOCKS[1] = {0x0b}; 
+const unsigned char TIMEPLATFORMBLOCKS[2] = {0x0c, 0x0d}; 
 
 
 
 
-
-
-UWORD playerPalette[] = {
+const UWORD playerPalette[] = {
 	PlayerTiles0SGBPal0c0,
 	PlayerTiles0CGBPal0c1,
 	PlayerTiles0CGBPal0c2,
@@ -68,14 +67,15 @@ UWORD playerPalette[] = {
 
 };
 
-UWORD projectilePalette[] = {
+
+const UWORD projectilePalette[] = {
 	ProjectileCGBPal0c0,
 	ProjectileCGBPal0c1,
 	ProjectileCGBPal0c2,
 	ProjectileCGBPal0c3
 };
 
-unsigned char* playerTilesets[] = {
+const unsigned char* playerTilesets[] = {
 	PlayerTiles0,
 	PlayerTiles1,
 	PlayerTiles2,
@@ -96,11 +96,11 @@ uint8_t switchState = 0;
 uint8_t timeTrapState = 1;
 
 uint8_t timeTrapCounter = 60;
-uint8_t TIMETRAPTIMELIMIT = 60;
+const uint8_t TIMETRAPTIMELIMIT = 60;
 
 
-uint8_t CENTERX = 80;
-uint8_t CENTERY = 72;
+const uint8_t CENTERX = 80;
+const uint8_t CENTERY = 72;
 
 uint8_t joydata = 0;
 uint8_t previousJoydata = 0;
@@ -120,21 +120,21 @@ int16_t playerYScaled = 50<<3;
 int8_t xDir = 1;
 
 
-int16_t groundAcceleration = 16;
-int16_t airAcceleration = 4;
+const int16_t groundAcceleration = 16;
+const int16_t airAcceleration = 4;
 //scaled by factor of 2^3 = 8
 int16_t xSpeed = 0;
-int16_t maxXSpeed = 64;
+const int16_t maxXSpeed = 64;
 
 //positive when going down
 // scaled by factor of 2^3 = 8
 int16_t ySpeed = 0;
-int16_t AIRGRAVITY = 8;
-int16_t WATERFALLSPEEDLIMIT = 32;
+const int16_t AIRGRAVITY = 8;
+const int16_t WATERFALLSPEEDLIMIT = 32;
 //initial jump power
-int16_t JUMPPOWER = 80;
+const int16_t JUMPPOWER = 80;
 //how much holding A will affect jump height
-int16_t JUMPCARRY = 16;
+const int16_t JUMPCARRY = 16;
 
 
 
@@ -145,18 +145,18 @@ uint8_t jumpReleased = 1;
 
 //nonzero value means, that player should fall through floor only tiles (aka single directional platforms)
 uint8_t dropDownFrames = 0;
-uint8_t DROPDOWNDURATION = 20;
+const uint8_t DROPDOWNDURATION = 20;
 
 //will be set to the tile index that has the finish
 // initialized during level load
 uint16_t finishTileIndex = 0;
 
 int16_t hp = 800;
-int16_t maxHp = 800;
+const int16_t maxHp = 800;
 
 uint8_t playerFrame = 0;
 uint8_t frameCounter = 20;
-uint8_t ANIMFRAMETIME = 20;
+const uint8_t ANIMFRAMETIME = 20;
 
 uint8_t previousTile = 0;
 
@@ -170,7 +170,7 @@ uint16_t onScreenY = 0;
 
 //how many times fall damage is bit shifted right before applying
 // (larger number for less dmg)
-uint8_t FALLDAMAGESCALE = 1;
+const uint8_t FALLDAMAGESCALE = 1;
 
 
 uint16_t hatHeight;
@@ -178,189 +178,36 @@ uint16_t sideEdge;
 
 
 
-inline uint8_t uClamp( uint8_t value, uint8_t min, uint8_t max )
-{
-    return (value < min) ? min : (value > max) ? max : value;
-}
-
-inline int16_t i16Clamp( int16_t value, int16_t min, int16_t max )
-{
-    return (value < min) ? min : (value > max) ? max : value;
-}
-
-inline uint16_t u16Clamp( uint16_t value, uint16_t min, uint16_t max )
-{
-    return (value < min) ? min : (value > max) ? max : value;
-}
-
-inline int16_t i16abs(int16_t value) {
-	if (value >= 0) return value;
-	else return - value;
-}
 
 
 
 
-/*
 
 
 
 
-//returns 1, if player should stay alive
-inline uint8_t checkObstacleCollision(uint16_t x, uint16_t y) {
-	uint16_t ind = MAPS[currentMap].width*((y)>>3) + ((x)>>3);
-	uint8_t dead = 0;
-	for (uint8_t i=0; i < OBSTACLECOUNT; i++) {
-		if (MAPS[currentMap].tilePlane[ind] == OBSTACLETILES[i]) {
-			dead = 1;
-		} 
-	}
-	if (dead) {
-		return 0;
-	}
-	else {
-		if (timeTrapState) { //traps are in up position
-			if (MAPS[currentMap].tilePlane[ind] == TIMETRAPBLOCKS[0]) {
-				return 0;
-			}
+
+
+
+
+
+
+
+
+
+
+
+void updateTraps() {
+	if (timeTrapCounter == 0) {
+		if (timeTrapState) {
+			timeTrapState = 0;
+			set_bkg_data(TIMETRAPBLOCKS[0], 3, TimeTrapsDown); 
 		}
-	}
-	return 1 ;
-}
-
-inline void addGravity() {
-	uint16_t ind = MAPS[currentMap].width*((playerY - 8)>>3) + ((playerX)>>3);
-	ySpeed += AIRGRAVITY;
-
-	
-	if (MAPS[currentMap].tilePlane[ind] == 0x02 || MAPS[currentMap].tilePlane[ind] == 0x03 ) {
-		inWater = 1;
-		if (ySpeed > WATERFALLSPEEDLIMIT) {
-			ySpeed = WATERFALLSPEEDLIMIT;
+		else {
+			timeTrapState = 1;
+			set_bkg_data(TIMETRAPBLOCKS[0], 3, TimeTrapsUp); 
 		}
-	}
-	else {
-		inWater = 0;
-	}
-}
-
-
-
-
-
-void checkTrapCollision() {
-	if (!checkObstacleCollision(playerX - sideEdge +1, playerY - (hatHeight >> 1) +1)
-	|| !checkObstacleCollision(playerX - sideEdge +1, playerY-1) 
-	|| !checkObstacleCollision(playerX + sideEdge -1, playerY - (hatHeight >> 1)+1)
-	|| !checkObstacleCollision(playerX + sideEdge +1, playerY-1) )
-	{
-		hp = 0;
-	}
-
-}
-
-
-
-
-
-
-
-void animatePlayer() {
-
-	frameCounter -= 1;
-	if (frameCounter == 0) {
-		playerFrame += 1;
-		if (playerFrame == 2) {
-			playerFrame = 0;
-		}
-		frameCounter = ANIMFRAMETIME;
-	}
-
-	if (playerHurt) {
-		if (playerHurtPaletteCounter == 0) {
-			set_sprite_palette(0,1, &playerPalette[4]);
-		}
-		playerHurtPaletteCounter++;
-		if (playerHurtPaletteCounter == playerHurtPaletteTime) {
-			playerHurt = 0;
-			set_sprite_palette(0,1, &playerPalette[0]);
-			playerHurtPaletteCounter = 0;
-
-		}
-	}
-}
-
-//1 if finished, 0 otherwise
-uint8_t checkFinish() {
-	uint16_t ind = MAPS[currentMap].width*((playerY - 8)>>3) + ((playerX)>>3);
-
-	if (ind == finishTileIndex) {
-		return 1;
-	}
-	else {
-		return 0;
-	}
-}
-
-void playDeathAnimation() {
-	set_sprite_palette(0, 1, &playerPalette[0]); 
-	set_sprite_tile(0,  (playerFrame << 2));
-	set_sprite_tile(1,  2+ (playerFrame << 2));
-
-	for(uint8_t i = 0; i < 5;i++) {
-		move_sprite(0, 200, 200);
-		move_sprite(1, 200, 200);
-		wait_vbl_done();
-		delay(100);
-		move_sprite(0, onScreenX, onScreenY);
-		move_sprite(1, onScreenX+8, onScreenY);
-		wait_vbl_done();
-		delay(100);
-	}
-}
-
-void fire() {
-
-	if (framesSinceLastFire < fireDelay) {
-		return;
-	}
-	if (projectiles[oldestProjectile].active) {
-		return;
-	}
-
-
-	hp -= 10;
-	framesSinceLastFire = 0;
-
-
-	uint16_t ind = MAPS[currentMap].width*((playerY - 3)>>3) + ((playerX)>>3);
-
-	if (MAPS[currentMap].tilePlane[ind] == SWITCHTILE) {
-		switchBlocks();
-		return;
-	}
-
-	
-	projectiles[oldestProjectile].active = 1;
-	projectiles[oldestProjectile].x = playerX + 4;
-	projectiles[oldestProjectile].y = playerY - 8;
-	projectiles[oldestProjectile].scaledX = (playerX + 4)<<3;
-	projectiles[oldestProjectile].scaledY = (playerY -8)<<3;
-
-	projectiles[oldestProjectile].framesSinceActivation = 0;
-	
-
-	if (xDir > 0) {
-		projectiles[oldestProjectile].xSpeed = PROJECTILEINITXSPEED + xSpeed;
-	}
-	if (xDir < 0) {
-		projectiles[oldestProjectile].xSpeed = -PROJECTILEINITXSPEED + xSpeed;
-	}
-	projectiles[oldestProjectile].ySpeed = -PROJECTILEINITYSPEED + ySpeed;
-
-	oldestProjectile++;
-	if (oldestProjectile >= PROJECTILECOUNT) {
-		oldestProjectile = 0;
+		timeTrapCounter = TIMETRAPTIMELIMIT;
 	}
 }
 
@@ -368,6 +215,23 @@ static inline void removeProjectile(uint8_t i) {
 	projectiles[i].active = 0;
 	move_sprite(projectiles[i].tile, 200, 200);
 }
+
+
+void switchBlocks() {
+
+	if (switchState) {
+		switchState = 0;
+		set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
+
+	}
+	else {
+		switchState = 1;
+		set_bkg_data(SWITCHBLOCKS[0], 3, SecondaryBlocks); 
+	}
+}
+
+
+
 
 void moveProjectiles() {
 
@@ -404,69 +268,123 @@ void moveProjectiles() {
 	}
 }
 
-void switchBlocks() {
+
+void fire() {
+
+	if (framesSinceLastFire < fireDelay) {
+		return;
+	}
+	if (projectiles[oldestProjectile].active) {
+		return;
+	}
 
 
-	if (switchState) {
-		switchState = 0;
-		set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
+	hp -= 10;
+	framesSinceLastFire = 0;
 
+
+	_saved_bank = _current_bank;
+	SWITCH_ROM(mapBank);
+	uint16_t ind = mapWidth*((playerY - 3)>>3) + ((playerX)>>3);
+
+	if (mapTiles[ind] == SWITCHTILE) {
+		switchBlocks();
+		SWITCH_ROM(_saved_bank);
+
+		return;
+	}
+
+	SWITCH_ROM(_saved_bank);
+	
+	projectiles[oldestProjectile].active = 1;
+	projectiles[oldestProjectile].x = playerX + 4;
+	projectiles[oldestProjectile].y = playerY - 8;
+	projectiles[oldestProjectile].scaledX = (playerX + 4)<<3;
+	projectiles[oldestProjectile].scaledY = (playerY -8)<<3;
+
+	projectiles[oldestProjectile].framesSinceActivation = 0;
+	
+
+	if (xDir > 0) {
+		projectiles[oldestProjectile].xSpeed = PROJECTILEINITXSPEED + xSpeed;
+	}
+	if (xDir < 0) {
+		projectiles[oldestProjectile].xSpeed = -PROJECTILEINITXSPEED + xSpeed;
+	}
+	projectiles[oldestProjectile].ySpeed = -PROJECTILEINITYSPEED + ySpeed;
+
+	oldestProjectile++;
+	if (oldestProjectile >= PROJECTILECOUNT) {
+		oldestProjectile = 0;
+	}
+}
+
+
+//returns 1, if player should stay alive
+//presumes that mapbank has been switched to
+inline uint8_t checkObstacleCollision(uint16_t x, uint16_t y) {
+	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
+	uint8_t dead = 0;
+	for (uint8_t i=0; i < OBSTACLECOUNT; i++) {
+		if (mapTiles[ind] == OBSTACLETILES[i]) {
+			dead = 1;
+		} 
+	}
+	if (dead) {
+		return 0;
 	}
 	else {
-		switchState = 1;
-		set_bkg_data(SWITCHBLOCKS[0], 3, SecondaryBlocks); 
-	}
-}
-
-void checkProjectileCollisions() {
-	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
-
-		if (projectiles[i].active) {
-			if (!checkFloorCollision(projectiles[i].x, projectiles[i].y+3)) {
-				projectiles[i].ySpeed = - (PROJECTILEINITYSPEED >> 1);
+		if (timeTrapState) { //traps are in up position
+			if (mapTiles[ind] == TIMETRAPBLOCKS[0]) {
+				return 0;
 			}
-			if (!checkFloorCollision(projectiles[i].x-3, projectiles[i].y-4) || !checkFloorCollision(projectiles[i].x+3, projectiles[i].y-4)) {
-				removeProjectile(i);
-				continue;
+		}
+	}
+	return 1 ;
+}
 
-			}
+void checkTrapCollision() {
+	_saved_bank = _current_bank;
+	SWITCH_ROM(mapBank);
+	if (!checkObstacleCollision(playerX - sideEdge +1, playerY - (hatHeight >> 1) +1)
+	|| !checkObstacleCollision(playerX - sideEdge +1, playerY-1) 
+	|| !checkObstacleCollision(playerX + sideEdge -1, playerY - (hatHeight >> 1)+1)
+	|| !checkObstacleCollision(playerX + sideEdge +1, playerY-1) )
+	{
+		hp = 0;
+	}
+	SWITCH_ROM(_saved_bank);
+}
 
 
-			uint16_t ind = MAPS[currentMap].width*((projectiles[i].y-3)>>3) + (((projectiles[i].x-3)>>3));
-			uint16_t ind2 = MAPS[currentMap].width*((projectiles[i].y-3)>>3) + (((projectiles[i].x+3)>>3));
 
-			if (MAPS[currentMap].tilePlane[ind] == SWITCHTILE || 
-				MAPS[currentMap].tilePlane[ind2] == SWITCHTILE) {
-				
-				if (projectiles[i].framesSinceActivation > PROJECTILEACTIVATIONCOOLDOWN) {
-					switchBlocks();
 
-					projectiles[i].framesSinceActivation = 0;
-				}
-			} 
+void animatePlayer() {
+
+	frameCounter -= 1;
+	if (frameCounter == 0) {
+		playerFrame += 1;
+		if (playerFrame == 2) {
+			playerFrame = 0;
+		}
+		frameCounter = ANIMFRAMETIME;
+	}
+
+	if (playerHurt) {
+		if (playerHurtPaletteCounter == 0) {
+			set_sprite_palette(0,1, &playerPalette[4]);
+		}
+		playerHurtPaletteCounter++;
+		if (playerHurtPaletteCounter == playerHurtPaletteTime) {
+			playerHurt = 0;
+			set_sprite_palette(0,1, &playerPalette[0]);
+			playerHurtPaletteCounter = 0;
 
 		}
 	}
 }
 
-void updateTraps() {
-	if (timeTrapCounter == 0) {
-		if (timeTrapState) {
-			timeTrapState = 0;
-			set_bkg_data(TIMETRAPBLOCKS[0], 3, TimeTrapsDown); 
-		}
-		else {
-			timeTrapState = 1;
-			set_bkg_data(TIMETRAPBLOCKS[0], 3, TimeTrapsUp); 
-		}
-		timeTrapCounter = TIMETRAPTIMELIMIT;
-	}
 
-
-
-}
-
-*/
 //returns true if there is no collision in a point
 inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
 	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
@@ -499,6 +417,40 @@ inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
 }
 
 
+void checkProjectileCollisions() {
+	_saved_bank = _current_bank;
+	SWITCH_ROM(mapBank);
+	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
+
+		if (projectiles[i].active) {
+			if (!checkFloorCollision(projectiles[i].x, projectiles[i].y+3)) {
+				projectiles[i].ySpeed = - (PROJECTILEINITYSPEED >> 1);
+			}
+			if (!checkFloorCollision(projectiles[i].x-3, projectiles[i].y-4) || !checkFloorCollision(projectiles[i].x+3, projectiles[i].y-4)) {
+				removeProjectile(i);
+				continue;
+
+			}
+
+
+			uint16_t ind = mapWidth*((projectiles[i].y-3)>>3) + (((projectiles[i].x-3)>>3));
+			uint16_t ind2 = mapWidth*((projectiles[i].y-3)>>3) + (((projectiles[i].x+3)>>3));
+
+			if (mapTiles[ind] == SWITCHTILE || 
+				mapTiles[ind2] == SWITCHTILE) {
+				
+				if (projectiles[i].framesSinceActivation > PROJECTILEACTIVATIONCOOLDOWN) {
+					switchBlocks();
+
+					projectiles[i].framesSinceActivation = 0;
+				}
+			} 
+
+		}
+	}
+	SWITCH_ROM(_saved_bank);
+
+}
 
 //presumes mapbank being set
 void putPlayerOnGround(uint16_t sideEdge) {
@@ -658,6 +610,7 @@ void moveVertical() {
 	playerY = playerYScaled >> 3;
 
 
+	SWITCH_ROM(_saved_bank);
 
 
 	//tile as in vram tiles for player tileset
@@ -675,7 +628,6 @@ void moveVertical() {
 	}
 
 	
-	SWITCH_ROM(_saved_bank);
 
 }
 
@@ -848,13 +800,13 @@ void shufflePlayer(uint16_t x, uint16_t y) {
 	playerY = 0;
 	while (playerX < mapWidth*8 || playerY < mapHeight*8 ) {
 		if (playerX + 8 < mapWidth*8) {
-			playerX += 1; //8
+			playerX += 8; //8
 		}
-		if (playerX< mapWidth*8) {
+		if (playerX < mapWidth*8) {
 			playerX += 1;
 		}
 		if (playerY + 8 < mapHeight*8) {
-			playerY += 1; //8
+			playerY += 8; //8
 		}
 		if (playerY < mapHeight*8) {
 			playerY += 1;
@@ -992,7 +944,7 @@ void startLevel() {
 void main(){
 
 	_saved_bank = _current_bank;
-	initMapPointers();
+	initMapPointers(0);
 
 	//disable_interrupts();
 
@@ -1054,7 +1006,6 @@ void main(){
 		startLevel();
 
 		while(1) {
-			wait_vbl_done();
 
 			
 			previousJoydata = joydata;
@@ -1063,16 +1014,18 @@ void main(){
 			moveHorizontal();
 			moveVertical();
 			updateEntityPositions(0);
-
-//			
-/*
-//			checkTrapCollision();
-
 			animatePlayer();
+
+			
+			checkTrapCollision();
+			moveProjectiles();
+
+
 
 			if (joydata & J_B && !(previousJoydata & J_B)) {
 				fire();
 			}
+			
 			if (joydata & J_SELECT && !(previousJoydata & J_SELECT)) {
 				startLevel();
 			}
@@ -1081,27 +1034,30 @@ void main(){
 			}
 
 
-			moveProjectiles();
-
 			checkProjectileCollisions();
-
-
 			updateTraps();
-
-			if (checkFinish()) {
-				break;
-			}
-
-			if (hp <= 0) {
-				playDeathAnimation();
-				break;
-			}
 
 			framesSinceLastFire++;
 			timeTrapCounter--;
 
+
+
+			if (checkFinish(finishTileIndex, mapWidth, playerX, playerY)) {
+				break;
+			}
+
+			
+			if (hp <= 0) {
+				set_sprite_palette(0, 1, &playerPalette[0]); 
+				playDeathAnimation(onScreenX, onScreenY);
+
+				break;
+			}
+			
+
+
 			wait_vbl_done();
-			*/
+			
 
 
 		}
