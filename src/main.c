@@ -203,37 +203,6 @@ inline int16_t i16abs(int16_t value) {
 
 /*
 
-//returns true if there is no collision in a point
-inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
-	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
-	uint8_t floor = 0;
-	
-	SWITCH_ROM(mapBank);
-	for (uint8_t i=0; i < FLOORTILECOUNT; i++) {
-		if (MAPS[currentMap].tilePlane[ind] == FLOORTILES[i]) {
-			floor = 1;
-		} 
-	}
-	if (floor) {
-		return 0;
-	}
-
-	else {
-		if (MAPS[currentMap].tilePlane[ind] == SWITCHBLOCKS[0] && switchState == 0) {
-			return 0;
-		}
-		if (MAPS[currentMap].tilePlane[ind] == SWITCHBLOCKS[1] && switchState == 1) {
-			return 0;
-		}
-		if (MAPS[currentMap].tilePlane[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
-			return 0;
-		}		
-		if (MAPS[currentMap].tilePlane[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
-			return 0;
-		}
-		return 1;
-	}
-}
 
 
 
@@ -276,142 +245,8 @@ inline void addGravity() {
 }
 
 
-void putPlayerOnGround(uint16_t sideEdge) {
-	uint16_t yDistance = 0;
-	uint16_t newPlayerY = playerY;
-	while (yDistance < 16) {
-		
-        if (!checkFloorCollision(playerX, newPlayerY) || 
-			!checkFloorCollision(playerX+ sideEdge -1, newPlayerY) ||
-			!checkFloorCollision(playerX-sideEdge + 1, newPlayerY))
-		{	
-			break;
-		}
-		newPlayerY++;
-		yDistance++;
-	}
-
-	playerY = newPlayerY;
-	playerYScaled = playerY << 3;
-
-}
 
 
-
-
-
-void moveVertical() {
-
-
-	if (ySpeed >= 0) {
-		//player bottom
-		uint16_t newPlayerY = (playerYScaled + (ySpeed>>3)) >> 3;
-
-		//FALLING DOWN CHECKS
-		//first check if player shold drop through a one way platform (a+down)
-		if (dropDownFrames > 0) {
-			if (checkRoofCollision(playerX, newPlayerY) && checkRoofCollision(playerX+ sideEdge -1, newPlayerY) && checkRoofCollision(playerX-sideEdge + 1, newPlayerY)) { 
-				addGravity();
-				onGround = 0;
-				dropDownFrames--;
-				set_sprite_tile(0, 12);
-				set_sprite_tile(1,  14);
-
-			}
-			else {
-				onGround = 1;
-			}
-		}
-		//regular gravity check
-		else {
-			if (checkFloorCollision(playerX, newPlayerY) && checkFloorCollision(playerX+ sideEdge -1, newPlayerY) && checkFloorCollision(playerX-sideEdge + 1, newPlayerY)) {
-				addGravity();
-				onGround = 0;
-				set_sprite_tile(0, 12);
-				set_sprite_tile(1,  14);
-			}
-			//on solid ground
-			else {
-				onGround = 1;
-			}
-		}
-		if (onGround) {
-			if (ySpeed != 0) {
-				//when hitting ground, player might be a couple pixels off the ground
-				putPlayerOnGround(sideEdge);
-				playerHurt = 1;
-				playerHurtPaletteTime = uClamp(ySpeed >> 4, 1, 10);
-				hp -= ySpeed >> FALLDAMAGESCALE;
-			}
-			jumping = 0;
-			ySpeed = 0;
-
-		}
-
-	}
-
-	if (ySpeed < 0) {
-		//player top if movement goes through this frame
-		uint16_t newPlayerY = ((playerYScaled + (ySpeed>>3)) >> 3) - hatHeight;
-
-		if (!checkRoofCollision(playerX, newPlayerY) || !checkRoofCollision(playerX + sideEdge - 1, newPlayerY) || !checkRoofCollision(playerX - sideEdge + 1, newPlayerY)) {
-			ySpeed = 0;
-		}
-		addGravity();
-	}
-
-	if (joydata & J_A && !(joydata & J_DOWN)) {
-		if (onGround && !jumping && jumpReleased) {
-			ySpeed = -JUMPPOWER;
-			jumping = 1;
-			onGround = 0;
-			jumpReleased = 0;
-			set_sprite_tile(0, 8);
-			set_sprite_tile(1,  10);
-		}
-		else if (jumping < 12 && !onGround ) {
-			jumping += 1;
-			ySpeed -= JUMPCARRY;
-		}
-	} else {
-		jumpReleased = 1;
-	}
-
-	if (onGround && xSpeed != 0) {
-		hp -= 1;
-	}
-
-	if (inWater) {
-		hp += 10;
-
-	}
-
-	hp = i16Clamp(hp, 0, maxHp);
-
-
-	playerYScaled += ySpeed >> 3;
-	playerY = playerYScaled >> 3;
-
-
-
-
-	//tile as in vram tiles for player tileset
-	uint16_t currentTile = (maxHp - hp) / 100;
-	currentTile = u16Clamp(currentTile,0, 7);
-	if (currentTile != previousTile) {
-		set_sprite_data(0, 16, playerTilesets[currentTile]);
-		previousTile = currentTile;
-	}
-
-	
-	if (ySpeed == 0) {
-		set_sprite_tile(0,  (playerFrame << 2));
-		set_sprite_tile(1,  2+ (playerFrame << 2));
-	}
-
-	
-
-}
 
 void checkTrapCollision() {
 	if (!checkObstacleCollision(playerX - sideEdge +1, playerY - (hatHeight >> 1) +1)
@@ -632,6 +467,60 @@ void updateTraps() {
 }
 
 */
+//returns true if there is no collision in a point
+inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
+	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
+	uint8_t floor = 0;
+	
+	for (uint8_t i=0; i < FLOORTILECOUNT; i++) {
+		if (mapTiles[ind] == FLOORTILES[i]) {
+			floor = 1;
+		} 
+	}
+	if (floor) {
+		return 0;
+	}
+
+	else {
+		if (mapTiles[ind] == SWITCHBLOCKS[0] && switchState == 0) {
+			return 0;
+		}
+		if (mapTiles[ind] == SWITCHBLOCKS[1] && switchState == 1) {
+			return 0;
+		}
+		if (mapTiles[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
+			return 0;
+		}		
+		if (mapTiles[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
+			return 0;
+		}
+		return 1;
+	}
+}
+
+
+
+//presumes mapbank being set
+void putPlayerOnGround(uint16_t sideEdge) {
+	uint16_t yDistance = 0;
+	uint16_t newPlayerY = playerY;
+	while (yDistance < 16) {
+		
+        if (!checkFloorCollision(playerX, newPlayerY) || 
+			!checkFloorCollision(playerX+ sideEdge -1, newPlayerY) ||
+			!checkFloorCollision(playerX-sideEdge + 1, newPlayerY))
+		{	
+			break;
+		}
+		newPlayerY++;
+		yDistance++;
+	}
+
+	playerY = newPlayerY;
+	playerYScaled = playerY << 3;
+
+}
+
 
 
 
@@ -654,6 +543,142 @@ inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 		return 1;
 	}
 }
+
+
+//presumes that bank has been set to mapbank
+inline void addGravity() {
+	uint16_t ind = mapWidth*((playerY - 8)>>3) + ((playerX)>>3);
+	ySpeed += AIRGRAVITY;
+
+	
+	if (mapTiles[ind] == 0x02 || mapTiles[ind] == 0x03 ) {
+		inWater = 1;
+		if (ySpeed > WATERFALLSPEEDLIMIT) {
+			ySpeed = WATERFALLSPEEDLIMIT;
+		}
+	}
+	else {
+		inWater = 0;
+	}
+}
+
+
+void moveVertical() {
+	_saved_bank = _current_bank;
+
+	SWITCH_ROM(mapBank);
+
+	if (ySpeed >= 0) {
+		//player bottom
+		uint16_t newPlayerY = (playerYScaled + (ySpeed>>3)) >> 3;
+
+		//FALLING DOWN CHECKS
+		//first check if player shold drop through a one way platform (a+down)
+		if (dropDownFrames > 0) {
+			if (checkRoofCollision(playerX, newPlayerY) && checkRoofCollision(playerX+ sideEdge -1, newPlayerY) && checkRoofCollision(playerX-sideEdge + 1, newPlayerY)) { 
+				addGravity();
+				onGround = 0;
+				dropDownFrames--;
+				set_sprite_tile(0, 12);
+				set_sprite_tile(1,  14);
+
+			}
+			else {
+				onGround = 1;
+			}
+		}
+		//regular gravity check
+		else {
+			if (checkFloorCollision(playerX, newPlayerY) && checkFloorCollision(playerX+ sideEdge -1, newPlayerY) && checkFloorCollision(playerX-sideEdge + 1, newPlayerY)) {
+				addGravity();
+				onGround = 0;
+				set_sprite_tile(0, 12);
+				set_sprite_tile(1,  14);
+			}
+			//on solid ground
+			else {
+				onGround = 1;
+			}
+		}
+		if (onGround) {
+			if (ySpeed != 0) {
+				//when hitting ground, player might be a couple pixels off the ground
+				putPlayerOnGround(sideEdge);
+				playerHurt = 1;
+				playerHurtPaletteTime = uClamp(ySpeed >> 4, 1, 10);
+				hp -= ySpeed >> FALLDAMAGESCALE;
+			}
+			jumping = 0;
+			ySpeed = 0;
+
+		}
+
+	}
+
+	if (ySpeed < 0) {
+		//player top if movement goes through this frame
+		uint16_t newPlayerY = ((playerYScaled + (ySpeed>>3)) >> 3) - hatHeight;
+
+		if (!checkRoofCollision(playerX, newPlayerY) || !checkRoofCollision(playerX + sideEdge - 1, newPlayerY) || !checkRoofCollision(playerX - sideEdge + 1, newPlayerY)) {
+			ySpeed = 0;
+		}
+		addGravity();
+	}
+
+	if (joydata & J_A && !(joydata & J_DOWN)) {
+		if (onGround && !jumping && jumpReleased) {
+			ySpeed = -JUMPPOWER;
+			jumping = 1;
+			onGround = 0;
+			jumpReleased = 0;
+			set_sprite_tile(0, 8);
+			set_sprite_tile(1,  10);
+		}
+		else if (jumping < 12 && !onGround ) {
+			jumping += 1;
+			ySpeed -= JUMPCARRY;
+		}
+	} else {
+		jumpReleased = 1;
+	}
+
+	if (onGround && xSpeed != 0) {
+		hp -= 1;
+	}
+
+	if (inWater) {
+		hp += 10;
+
+	}
+
+	hp = i16Clamp(hp, 0, maxHp);
+
+
+	playerYScaled += ySpeed >> 3;
+	playerY = playerYScaled >> 3;
+
+
+
+
+	//tile as in vram tiles for player tileset
+	uint16_t currentTile = (maxHp - hp) / 100;
+	currentTile = u16Clamp(currentTile,0, 7);
+	if (currentTile != previousTile) {
+		set_sprite_data(0, 16, playerTilesets[currentTile]);
+		previousTile = currentTile;
+	}
+
+	
+	if (ySpeed == 0) {
+		set_sprite_tile(0,  (playerFrame << 2));
+		set_sprite_tile(1,  2+ (playerFrame << 2));
+	}
+
+	
+	SWITCH_ROM(_saved_bank);
+
+}
+
 
 void moveHorizontal() {
 	hatHeight = (hp >> 6) + 3;
@@ -1036,9 +1061,10 @@ void main(){
 			joydata = joypad();
 
 			moveHorizontal();
+			moveVertical();
 			updateEntityPositions(0);
 
-//			moveVertical();
+//			
 /*
 //			checkTrapCollision();
 

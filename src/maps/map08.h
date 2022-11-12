@@ -24,14 +24,28 @@
 
 
 
+const unsigned char* getMap08TilePlane() BANKED;
+BANKREF_EXTERN(getMap08TilePlane)
+const unsigned char* getMap08PalettePlane() BANKED;
+BANKREF_EXTERN(getMap08PalettePlane)
 
-#define Map08Width 20
-#define Map08Height 40
-#define Map08Bank 0
+extern const uint8_t getMap08Width() BANKED;
+BANKREF_EXTERN(getMap08Width)
+extern const uint8_t getMap08Height() BANKED;
+BANKREF_EXTERN(getMap08Height)
 
-#define Map08 Map08PLN0
+
+
+extern const uint8_t Map08Width;
+BANKREF_EXTERN(Map08Width)
+extern const uint8_t Map08Height;
+BANKREF_EXTERN(Map08Height)
+
 extern const unsigned char Map08PLN0[];
+BANKREF_EXTERN(Map08PLN0)
 extern const unsigned char Map08PLN1[];
+BANKREF_EXTERN(Map08PLN1)
+
 
 #endif
 

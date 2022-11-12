@@ -1,7 +1,7 @@
 
 #include <gbdk/platform.h>
 
-#pragma bank 198
+#pragma bank 8
 
 /*
 
@@ -25,13 +25,15 @@
 
 
 
+BANKREF(Map08Width)
+const uint8_t Map08Width = 20;
+BANKREF(Map08Height)
+const uint8_t Map08Height = 40;
 
 
-#define Map08Width 20
-#define Map08Height 40
-#define Map08Bank 0
 
-#define Map08 Map08PLN0
+
+BANKREF(Map08PLN0)
 const unsigned char Map08PLN0[] =
 {
   0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,
@@ -116,6 +118,7 @@ const unsigned char Map08PLN0[] =
   0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01
 };
 
+BANKREF(Map08PLN1)
 const unsigned char Map08PLN1[] =
 {
   0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,
@@ -201,3 +204,23 @@ const unsigned char Map08PLN1[] =
 };
 
 /* End of MAP08.C */
+
+
+BANKREF(getMap08TilePlane)
+unsigned char* getMap08TilePlane() __banked {
+    return &Map08PLN0;
+}
+BANKREF(getMap08PalettePlane)
+unsigned char* getMap08PalettePlane() __banked {
+    return &Map08PLN1;
+}
+
+BANKREF(getMap08Width)
+const uint8_t getMap08Width() __banked {
+    return Map08Width;
+}
+BANKREF(getMap08Height)
+const uint8_t getMap08Height() __banked {
+    return Map08Height;
+}
+

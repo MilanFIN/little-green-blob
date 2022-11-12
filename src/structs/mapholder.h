@@ -12,6 +12,7 @@
 #include "map07.h"
 */
 #include "map09.h"
+#include "map08.h"
 
 
 
@@ -33,22 +34,30 @@ uint8_t mapWidth; //FAR_CALL(widthPtr,uint8_t (*)(void));
 uint8_t mapHeight; //FAR_CALL(widthPtr,uint8_t (*)(void));
 
 
-struct MapPointer MAPPOINTERS[1];
-uint8_t currentMap;
+struct MapPointer MAPPOINTERS[2];
+uint8_t currentMap = 1;
 
 
 void initMapPointers() {
-	
-	struct MapPointer test = {
-		to_far_ptr(getMap09TilePlane, BANK(getMap09TilePlane)),
-		to_far_ptr(getMap09PalettePlane, BANK(getMap09PalettePlane)),
-		to_far_ptr(getMap09Width, BANK(getMap09Width)),
-		to_far_ptr(getMap09Height, BANK(getMap09Height)),
-		BANK(Map09PLN0)
+	struct MapPointer test;
 
-	};
+	//map09
+	test.tilePtr = to_far_ptr(getMap09TilePlane, BANK(getMap09TilePlane));
+	test.palettePtr = to_far_ptr(getMap09PalettePlane, BANK(getMap09PalettePlane));
+	test.widthPtr = to_far_ptr(getMap09Width, BANK(getMap09Width));
+	test.heightPtr = to_far_ptr(getMap09Height, BANK(getMap09Height));
+	test.bank = BANK(Map09PLN0);
+
 	MAPPOINTERS[0] = test;
 
+	//map08
+	test.tilePtr = to_far_ptr(getMap08TilePlane, BANK(getMap08TilePlane));
+	test.palettePtr = to_far_ptr(getMap08PalettePlane, BANK(getMap08PalettePlane));
+	test.widthPtr = to_far_ptr(getMap08Width, BANK(getMap08Width));
+	test.heightPtr = to_far_ptr(getMap08Height, BANK(getMap08Height));
+	test.bank = BANK(Map08PLN0);
+
+	MAPPOINTERS[1] = test;
 
 
 	mapTiles = FAR_CALL(MAPPOINTERS[currentMap].tilePtr,uint16_t (*)(void));
