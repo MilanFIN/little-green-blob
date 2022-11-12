@@ -228,3 +228,12 @@ unsigned char* getMap09PalettePlane() __banked {
     return &Map09PLN1;
 }
 
+BANKREF(getMap09Width)
+const uint8_t getMap09Width() __banked {
+    return Map09Width;
+}
+BANKREF(getMap09Height)
+const uint8_t getMap09Height() __banked {
+    return Map09Height;
+}
+

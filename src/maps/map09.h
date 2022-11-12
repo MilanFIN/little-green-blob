@@ -33,6 +33,12 @@ BANKREF_EXTERN(getMap09TilePlane)
 const unsigned char* getMap09PalettePlane() BANKED;
 BANKREF_EXTERN(getMap09PalettePlane)
 
+extern const uint8_t getMap09Width() BANKED;
+BANKREF_EXTERN(getMap09Width)
+extern const uint8_t getMap09Height() BANKED;
+BANKREF_EXTERN(getMap09Height)
+
+
 
 extern const uint8_t Map09Width;
 BANKREF_EXTERN(Map09Width)
