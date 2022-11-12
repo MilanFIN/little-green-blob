@@ -40,23 +40,23 @@
 // alas + a pudottautuu?
 
 
-const unsigned char FLOORTILES[2] = {0x01, 0x06}; 
-const uint8_t FLOORTILECOUNT = 2;
-const unsigned char ROOFTILES[1] = {0x01}; 
-const uint8_t ROOFTILECOUNT = 1;
-const unsigned char OBSTACLETILES[1] = {0x07};
-const uint8_t OBSTACLECOUNT = 1;
-const unsigned char SWITCHBLOCKS[2] = {0x08, 0x09}; 
-const uint8_t SWITCHTILE = 0x0a;
-const unsigned char TIMETRAPBLOCKS[1] = {0x0b}; 
-const unsigned char TIMEPLATFORMBLOCKS[2] = {0x0c, 0x0d}; 
+unsigned char FLOORTILES[2] = {0x01, 0x06}; 
+uint8_t FLOORTILECOUNT = 2;
+unsigned char ROOFTILES[1] = {0x01}; 
+uint8_t ROOFTILECOUNT = 1;
+unsigned char OBSTACLETILES[1] = {0x07};
+uint8_t OBSTACLECOUNT = 1;
+unsigned char SWITCHBLOCKS[2] = {0x08, 0x09}; 
+uint8_t SWITCHTILE = 0x0a;
+unsigned char TIMETRAPBLOCKS[1] = {0x0b}; 
+unsigned char TIMEPLATFORMBLOCKS[2] = {0x0c, 0x0d}; 
 
 
 
 
 
 
-const UWORD playerPalette[] = {
+UWORD playerPalette[] = {
 	PlayerTiles0SGBPal0c0,
 	PlayerTiles0CGBPal0c1,
 	PlayerTiles0CGBPal0c2,
@@ -68,14 +68,14 @@ const UWORD playerPalette[] = {
 
 };
 
-const UWORD projectilePalette[] = {
+UWORD projectilePalette[] = {
 	ProjectileCGBPal0c0,
 	ProjectileCGBPal0c1,
 	ProjectileCGBPal0c2,
 	ProjectileCGBPal0c3
 };
 
-const unsigned char* playerTilesets[] = {
+unsigned char* playerTilesets[] = {
 	PlayerTiles0,
 	PlayerTiles1,
 	PlayerTiles2,
@@ -84,8 +84,11 @@ const unsigned char* playerTilesets[] = {
 	PlayerTiles5,
 	PlayerTiles6,
 	PlayerTiles7
-
 };
+
+
+uint8_t _saved_bank;
+
 
 //red/blue switch for switchblocks, 0 for red
 uint8_t switchState = 0;
@@ -93,11 +96,11 @@ uint8_t switchState = 0;
 uint8_t timeTrapState = 1;
 
 uint8_t timeTrapCounter = 60;
-const uint8_t TIMETRAPTIMELIMIT = 60;
+uint8_t TIMETRAPTIMELIMIT = 60;
 
 
-const uint8_t CENTERX = 80;
-const uint8_t CENTERY = 72;
+uint8_t CENTERX = 80;
+uint8_t CENTERY = 72;
 
 uint8_t joydata = 0;
 uint8_t previousJoydata = 0;
@@ -117,19 +120,19 @@ int16_t playerYScaled = 50<<3;
 int8_t xDir = 1;
 
 
-const int16_t groundAcceleration = 16;
-const int16_t airAcceleration = 4;
+int16_t groundAcceleration = 16;
+int16_t airAcceleration = 4;
 //scaled by factor of 2^3 = 8
 int16_t xSpeed = 0;
-const int16_t maxXSpeed = 64;
+int16_t maxXSpeed = 64;
 
 //positive when going down
 // scaled by factor of 2^3 = 8
 int16_t ySpeed = 0;
-const int16_t AIRGRAVITY = 8;
-const int16_t WATERFALLSPEEDLIMIT = 32;
+int16_t AIRGRAVITY = 8;
+int16_t WATERFALLSPEEDLIMIT = 32;
 //initial jump power
-const int16_t JUMPPOWER = 80;
+int16_t JUMPPOWER = 80;
 //how much holding A will affect jump height
 int16_t JUMPCARRY = 16;
 
@@ -142,7 +145,7 @@ uint8_t jumpReleased = 1;
 
 //nonzero value means, that player should fall through floor only tiles (aka single directional platforms)
 uint8_t dropDownFrames = 0;
-const uint8_t DROPDOWNDURATION = 20;
+uint8_t DROPDOWNDURATION = 20;
 
 //will be set to the tile index that has the finish
 // initialized during level load
@@ -153,7 +156,7 @@ int16_t maxHp = 800;
 
 uint8_t playerFrame = 0;
 uint8_t frameCounter = 20;
-const uint8_t ANIMFRAMETIME = 20;
+uint8_t ANIMFRAMETIME = 20;
 
 uint8_t previousTile = 0;
 
@@ -200,11 +203,12 @@ inline int16_t i16abs(int16_t value) {
 
 /*
 
-
 //returns true if there is no collision in a point
 inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
-	uint16_t ind = MAPS[currentMap].width*((y)>>3) + ((x)>>3);
+	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
 	uint8_t floor = 0;
+	
+	SWITCH_ROM(mapBank);
 	for (uint8_t i=0; i < FLOORTILECOUNT; i++) {
 		if (MAPS[currentMap].tilePlane[ind] == FLOORTILES[i]) {
 			floor = 1;
@@ -493,242 +497,11 @@ void checkTrapCollision() {
 
 }
 
-void updateEntityPositions(uint8_t force) {
-
-	int16_t xDiff = playerX - CENTERX;
-	int16_t yDiff = playerY - CENTERY - 32;
-
-	if (xDiff < 0) {
-		xDiff = 0;
-	}
-	if (xDiff > (MAPS[currentMap].width << 3) - 160) { //map width - 160 = (95)
-		xDiff = (MAPS[currentMap].width << 3) - 160;
-	}
-	if (yDiff < 0) {
-		yDiff = 0;
-	}
-	if (yDiff > (MAPS[currentMap].height << 3) - 144) { 
-		yDiff = (MAPS[currentMap].height << 3) - 144;
-	}
-	//player positions
-	onScreenX = playerX - xDiff;
-	onScreenY = playerY - yDiff;
-	move_sprite(0, onScreenX, onScreenY);
-	move_sprite(1, onScreenX + 8, onScreenY);
-
-
-	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
-		if (projectiles[i].active) {
-			//projectile positions
-			uint16_t projectileScreenX = projectiles[i].x - xDiff;
-			uint16_t projectileScreenY = projectiles[i].y - yDiff;
-			//position probably overflows at values > 256
-			if (projectileScreenX > 0 && projectileScreenX < 200 && projectileScreenY > 0 && projectileScreenY < 200) {
-				move_sprite(projectiles[i].tile, projectileScreenX+4, projectileScreenY);
-			}
-			else {
-				move_sprite(projectiles[i].tile, 220, 220);
-			}
-		}
-
-	}
 
 
 
 
 
-    uint8_t map_pos_x = (uint8_t)(xDiff >> 3u);
-	uint8_t map_pos_y = (uint8_t)(yDiff >> 3u);
-	
-	//x direction
-	if (map_pos_x != old_map_pos_x || force) {
-		if (xDiff < oldXDiff) {
-			VBK_REG = 1;
-			set_bkg_submap(map_pos_x, map_pos_y, 1, MIN(19u, MAPS[currentMap].height - map_pos_y), MAPS[currentMap].palettePlane, MAPS[currentMap].width);     
-			VBK_REG = 0;
-			set_bkg_submap(map_pos_x, map_pos_y, 1, MIN(19u, MAPS[currentMap].height - map_pos_y), MAPS[currentMap].tilePlane, MAPS[currentMap].width);     
-		} else {
-			if ((MAPS[currentMap].width - 20u) > map_pos_x) {
-				VBK_REG = 1;
-				set_bkg_submap(map_pos_x + 20u, map_pos_y, 1, MIN(19u, MAPS[currentMap].height - map_pos_y), MAPS[currentMap].palettePlane, MAPS[currentMap].width);   
-				VBK_REG = 0;
-				set_bkg_submap(map_pos_x + 20u, map_pos_y, 1, MIN(19u, MAPS[currentMap].height - map_pos_y), MAPS[currentMap].tilePlane, MAPS[currentMap].width);   
-			}   
-		}
-		old_map_pos_x = map_pos_x;
-		oldXDiff = xDiff;
-    }
-
-	//y direction
-	if (map_pos_y != old_map_pos_y || force) { 
-		if (yDiff < oldYDiff) {
-			VBK_REG = 1;
-			set_bkg_submap(map_pos_x, map_pos_y, MIN(21u, MAPS[currentMap].width-map_pos_x), 1, MAPS[currentMap].palettePlane, MAPS[currentMap].width);
-			VBK_REG = 0;
-			set_bkg_submap(map_pos_x, map_pos_y, MIN(21u, MAPS[currentMap].width-map_pos_x), 1, MAPS[currentMap].tilePlane, MAPS[currentMap].width);
-
-		} 
-		else {
-			if ((MAPS[currentMap].height - 18u) > map_pos_y) {
-				VBK_REG = 1;
-				set_bkg_submap(map_pos_x, map_pos_y + 18u, MIN(21u, MAPS[currentMap].width-map_pos_x), 1, MAPS[currentMap].palettePlane, MAPS[currentMap].width); 
-				VBK_REG = 0;
-				set_bkg_submap(map_pos_x, map_pos_y + 18u, MIN(21u, MAPS[currentMap].width-map_pos_x), 1, MAPS[currentMap].tilePlane, MAPS[currentMap].width); 
-			}   
-		}
-		old_map_pos_y = map_pos_y;
-		oldYDiff = yDiff;
-
-    }
-
-	
-
-    SCX_REG = xDiff; SCY_REG = yDiff; 
-
-
-}
-
-//shuffling to initialize bkg submap correctly
-void shufflePlayer(uint16_t x, uint16_t y) {
-
-	DISPLAY_OFF;
-
-	playerX = 0;
-	playerY = 0;
-	while (playerX < MAPS[currentMap].width*8 || playerY < MAPS[currentMap].height*8 ) {
-		if (playerX + 8 < MAPS[currentMap].width*8) {
-			playerX += 1; //8
-		}
-		if (playerX< MAPS[currentMap].width*8) {
-			playerX += 1;
-		}
-		if (playerY + 8 < MAPS[currentMap].height*8) {
-			playerY += 1; //8
-		}
-		if (playerY < MAPS[currentMap].height*8) {
-			playerY += 1;
-		}
-		updateEntityPositions(1);
-
-	}
-	
-	while (playerY > y || playerX > x) {
-
-		if (playerY - 8 > y) {
-			playerY -= 8; //8
-		}
-		else if (playerY > y) {
-			playerY--;
-		}
-		if (playerX - 8 > x) {
-			playerX -= 8; //8
-		}
-		else if (playerX > x) {
-			playerX--;
-		}
-		updateEntityPositions(1);
-
-	}
-	
-	playerX = x;
-	playerY = y;
-		
-	DISPLAY_ON;
-
-
-}
-
-
-void startLevel() {
-
-	//red/blue switch for switchblocks, 0 for red
-	uint8_t switchState = 0;
-	//raises/lowers spike traps, 0 for down
-	uint8_t timeTrapState = 1;
-
-
-	xSpeed = 0;
-	ySpeed = 0;
-
-	initProjectiles();
-	hp = maxHp;
-
-	uint16_t x = 0; // MAPS[currentMap].width*8
-	uint16_t y = 0;//MAPS[currentMap].height*8;
-
-	set_bkg_palette(0, 8, &primaryBackgroundPalette[0]);
-	
-
-	set_bkg_data(0, 14, Tileset); 
-	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
-
-	
-	VBK_REG = 1;
-	set_bkg_submap(0, 0, 20, 18, MAPS[currentMap].palettePlane, MAPS[currentMap].width);
-	VBK_REG = 0;
-	set_bkg_submap(0, 0, 20, 18, MAPS[currentMap].tilePlane, MAPS[currentMap].width);
-	
-
-
-
-	uint8_t shouldBreak = 0;
-	for (y = 0; y < MAPS[currentMap].height; y++) {
-		if (shouldBreak) {
-			break;
-		}
-		for (x = 0; x < MAPS[currentMap].width; x++) {
-			uint16_t ind = MAPS[currentMap].width*y + x;
-			if (MAPS[currentMap].tilePlane[ind] == 0x04) {
-				shouldBreak = 1;
-				break;
-			}
-		}
-	}
-	x = x*8 + 4;
-	y *= 8;
-	playerXScaled = x << 3;
-	playerYScaled = y << 3;
-
-
-	shufflePlayer(x, y);
-
-
-	shouldBreak = 0;
-	for (uint16_t j = 0; j < MAPS[currentMap].height; j++) {
-		if (shouldBreak) {
-			break;
-		}
-		for (uint16_t i = 0; i < MAPS[currentMap].width; i++) {
-			uint16_t ind = MAPS[currentMap].width*j + i;
-			if (MAPS[currentMap].tilePlane[ind] == 0x05) {
-				finishTileIndex = ind;
-				shouldBreak = 1;
-				break;
-			}
-		}
-	}
-
-	updateEntityPositions(1);
-
-}
-
-void initProjectiles() {
-	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
-		projectiles[i].active = 0;	
-		projectiles[i].x = 200;
-		projectiles[i].y = 200;
-		projectiles[i].scaledX = 200 << 3;
-		projectiles[i].scaledY = 200 << 3;
-		projectiles[i].tile = 10 + i;
-		projectiles[i].framesSinceActivation = 0;
-
-
-		set_sprite_tile(projectiles[i].tile, 0x10);
-		set_sprite_prop(projectiles[i].tile,1); //1 (2nd) palette
-		move_sprite(projectiles[i].tile, 200, 200);
-
-	}
-}
 
 void animatePlayer() {
 
@@ -933,11 +706,262 @@ void updateTraps() {
 
 */
 
+void updateEntityPositions(uint8_t force) {
+
+	_saved_bank = _current_bank;
+	SWITCH_ROM(mapBank);
+	int16_t xDiff = playerX - CENTERX;
+	int16_t yDiff = playerY - CENTERY - 32;
+
+	if (xDiff < 0) {
+		xDiff = 0;
+	}
+	if (xDiff > (mapWidth << 3) - 160) { //map width - 160 = (95)
+		xDiff = (mapWidth << 3) - 160;
+	}
+	if (yDiff < 0) {
+		yDiff = 0;
+	}
+	if (yDiff > (mapHeight << 3) - 144) { 
+		yDiff = (mapHeight << 3) - 144;
+	}
+	//player positions
+	onScreenX = playerX - xDiff;
+	onScreenY = playerY - yDiff;
+	move_sprite(0, onScreenX, onScreenY);
+	move_sprite(1, onScreenX + 8, onScreenY);
+
+
+	
+
+
+
+    uint8_t map_pos_x = (uint8_t)(xDiff >> 3u);
+	uint8_t map_pos_y = (uint8_t)(yDiff >> 3u);
+	
+	//x direction
+	if (map_pos_x != old_map_pos_x || force) {
+		if (xDiff < oldXDiff) {
+			VBK_REG = 1;
+			set_bkg_submap(map_pos_x, map_pos_y, 1, MIN(19u, mapHeight - map_pos_y), mapPalette, mapWidth);     
+			VBK_REG = 0;
+			set_bkg_submap(map_pos_x, map_pos_y, 1, MIN(19u, mapHeight - map_pos_y),mapTiles, mapWidth);     
+		} else {
+			if ((mapWidth - 20u) > map_pos_x) {
+				VBK_REG = 1;
+				set_bkg_submap(map_pos_x + 20u, map_pos_y, 1, MIN(19u, mapHeight - map_pos_y), mapPalette, mapWidth);   
+				VBK_REG = 0;
+				set_bkg_submap(map_pos_x + 20u, map_pos_y, 1, MIN(19u, mapHeight - map_pos_y), mapTiles, mapWidth);   
+			}   
+		}
+		old_map_pos_x = map_pos_x;
+		oldXDiff = xDiff;
+    }
+
+	//y direction
+	if (map_pos_y != old_map_pos_y || force) { 
+		if (yDiff < oldYDiff) {
+			VBK_REG = 1;
+			set_bkg_submap(map_pos_x, map_pos_y, MIN(21u, mapWidth-map_pos_x), 1, mapPalette, mapWidth);
+			VBK_REG = 0;
+			set_bkg_submap(map_pos_x, map_pos_y, MIN(21u, mapWidth-map_pos_x), 1, mapTiles, mapWidth);
+
+		} 
+		else {
+			if ((mapHeight - 18u) > map_pos_y) {
+				VBK_REG = 1;
+				set_bkg_submap(map_pos_x, map_pos_y + 18u, MIN(21u, mapWidth-map_pos_x), 1, mapPalette, mapWidth); 
+				VBK_REG = 0;
+				set_bkg_submap(map_pos_x, map_pos_y + 18u, MIN(21u, mapWidth-map_pos_x), 1, mapTiles, mapWidth); 
+			}   
+		}
+		old_map_pos_y = map_pos_y;
+		oldYDiff = yDiff;
+
+    }
+
+	
+
+    SCX_REG = xDiff; SCY_REG = yDiff; 
+
+
+	SWITCH_ROM(_saved_bank);
+
+
+	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
+	if (projectiles[i].active) {
+		//projectile positions
+		uint16_t projectileScreenX = projectiles[i].x - xDiff;
+		uint16_t projectileScreenY = projectiles[i].y - yDiff;
+		//position probably overflows at values > 256
+		if (projectileScreenX > 0 && projectileScreenX < 200 && projectileScreenY > 0 && projectileScreenY < 200) {
+			move_sprite(projectiles[i].tile, projectileScreenX+4, projectileScreenY);
+		}
+		else {
+			move_sprite(projectiles[i].tile, 220, 220);
+		}
+	}
+}
+	
+}
+//shuffling to initialize bkg submap correctly
+void shufflePlayer(uint16_t x, uint16_t y) {
+
+	_saved_bank = _current_bank;
+	SWITCH_ROM(mapBank);
+
+	//DISPLAY_OFF;
+
+	playerX = 0;
+	playerY = 0;
+	while (playerX < mapWidth*8 || playerY < mapHeight*8 ) {
+		if (playerX + 8 < mapWidth*8) {
+			playerX += 1; //8
+		}
+		if (playerX< mapWidth*8) {
+			playerX += 1;
+		}
+		if (playerY + 8 < mapHeight*8) {
+			playerY += 1; //8
+		}
+		if (playerY < mapHeight*8) {
+			playerY += 1;
+		}
+		updateEntityPositions(1);
+
+	}
+	
+	while (playerY > y || playerX > x) {
+
+		if (playerY - 8 > y) {
+			playerY -= 8; //8
+		}
+		else if (playerY > y) {
+			playerY--;
+		}
+		if (playerX - 8 > x) {
+			playerX -= 8; //8
+		}
+		else if (playerX > x) {
+			playerX--;
+		}
+		updateEntityPositions(1);
+
+	}
+	
+	playerX = x;
+	playerY = y;
+		
+	DISPLAY_ON;
+	
+	SWITCH_ROM(_saved_bank);
+
+
+}
+
+
+
+void initProjectiles() {
+	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
+		projectiles[i].active = 0;	
+		projectiles[i].x = 200;
+		projectiles[i].y = 200;
+		projectiles[i].scaledX = 200 << 3;
+		projectiles[i].scaledY = 200 << 3;
+		projectiles[i].tile = 10 + i;
+		projectiles[i].framesSinceActivation = 0;
+
+
+		set_sprite_tile(projectiles[i].tile, 0x10);
+		set_sprite_prop(projectiles[i].tile,1); //1 (2nd) palette
+		move_sprite(projectiles[i].tile, 200, 200);
+
+	}
+}
+
+void startLevel() {
+
+	//red/blue switch for switchblocks, 0 for red
+	uint8_t switchState = 0;
+	//raises/lowers spike traps, 0 for down
+	uint8_t timeTrapState = 1;
+
+
+	xSpeed = 0;
+	ySpeed = 0;
+
+	initProjectiles();
+	hp = maxHp;
+
+	uint16_t x = 0; // MAPS[currentMap].width*8
+	uint16_t y = 0;//MAPS[currentMap].height*8;
+
+	set_bkg_palette(0, 8, &primaryBackgroundPalette[0]);
+	
+
+	set_bkg_data(0, 14, Tileset); 
+	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
+
+	
+	_saved_bank = _current_bank;
+	SWITCH_ROM(mapBank);
+	VBK_REG = 1;
+	set_bkg_submap(0, 0, 20, 18, mapPalette, mapWidth); //Map09PLN1
+	VBK_REG = 0;
+	set_bkg_submap(0, 0, 20, 18, mapTiles, mapWidth);
+
+
+	uint8_t shouldBreak = 0;
+	for (y = 0; y < mapHeight; y++) {
+		if (shouldBreak) {
+			break;
+		}
+		for (x = 0; x < mapWidth; x++) {
+			uint16_t ind = mapWidth*y + x;
+			if (mapTiles[ind] == 0x04) {
+				shouldBreak = 1;
+				break;
+			}
+		}
+	}
+	x = x*8 + 4;
+	y *= 8;
+	playerXScaled = x << 3;
+	playerYScaled = y << 3;
+
+
+	SWITCH_ROM(_saved_bank);
+	shufflePlayer(x, y);
+
+	_saved_bank = _current_bank;
+	SWITCH_ROM(mapBank);
+
+	shouldBreak = 0;
+	for (uint16_t j = 0; j < mapHeight; j++) {
+		if (shouldBreak) {
+			break;
+		}
+		for (uint16_t i = 0; i < mapWidth; i++) {
+			uint16_t ind = mapWidth*j + i;
+			if (mapTiles[ind] == 0x05) {
+				finishTileIndex = ind;
+				shouldBreak = 1;
+				break;
+			}
+		}
+	}
+	SWITCH_ROM(_saved_bank);
+
+	updateEntityPositions(1);
+	
+
+}
 
 void main(){
 
-
+	_saved_bank = _current_bank;
 	initMapPointers();
+
 	//disable_interrupts();
 
 	DISPLAY_ON;
@@ -979,44 +1003,28 @@ void main(){
 	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 	
 
 
-	uint8_t _saved_bank = _current_bank;
-
-	//SWITCH_ROM(currentMap);
-	//SWITCH_ROM(BANK(currentMap));
-
-	//printf("%d", tilePlane);
-
+	_saved_bank = _current_bank;
 	SWITCH_ROM(mapBank);
-	
-	//FAR_PTR map09_tileFarPtr = to_far_ptr(getMap09TilePlane, BANK(getMap09TilePlane));
-	//FAR_PTR map09_PaletteFarPtr = to_far_ptr(getMap09PalettePlane, BANK(getMap09PalettePlane));
-	//FAR_PTR map09_widthFarPtr = to_far_ptr(getMap09Width, BANK(getMap09Width));
-	//FAR_PTR map09_heightFarPtr = to_far_ptr(getMap09Height, BANK(getMap09Height));
-	
-	//const unsigned char* tiles = FAR_CALL(tilePtr,uint16_t (*)(void));
-	//const unsigned char* palette = FAR_CALL(palettePtr,uint16_t (*)(void));
-	//uint8_t width = FAR_CALL(widthPtr,uint8_t (*)(void));
-	//const uint8_t height = FAR_CALL(getMap09Height,uint8_t (*)(void));
 	VBK_REG = 1;
 	set_bkg_submap(0, 0, 20, 18, mapPalette, mapWidth); //Map09PLN1
 	VBK_REG = 0;
 	set_bkg_submap(0, 0, 20, 18, mapTiles, mapWidth);
-
 	SWITCH_ROM(_saved_bank);
 
 
 
 	while(1) {
 
-		wait_vbl_done();
 
 
-		/*
+		
 		startLevel();
-		initProjectiles();
+		//initProjectiles();
 
 		while(1) {
+			wait_vbl_done();
 
+			/*
 			previousJoydata = joydata;
 			joydata = joypad();
 
@@ -1058,10 +1066,10 @@ void main(){
 			timeTrapCounter--;
 
 			wait_vbl_done();
-			
+			*/
+
 
 		}
-		*/
 
 	}
 	
