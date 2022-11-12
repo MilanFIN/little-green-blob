@@ -1,3 +1,5 @@
+#include <gbdk/platform.h>
+#include <gbdk/far_ptr.h>
 
 /*
 #include "map00.h"
@@ -9,23 +11,53 @@
 #include "map06.h"
 #include "map07.h"
 */
-#include <gbdk/platform.h>
-
 #include "map09.h"
 
 
 
-typedef struct MapObj {
-	const unsigned char* tilePlane;
-	const unsigned char* palettePlane;
-	const uint16_t width;
-	const uint16_t height;
-	const uint8_t bank;
-}MapObj;
 
+typedef struct MapPointer {
+	FAR_PTR tilePtr;
+	FAR_PTR palettePtr;
+	FAR_PTR widthPtr;
+	FAR_PTR heightPtr;
+	uint8_t bank;
+};
 
 uint8_t MAPCOUNT = 9;
 
+uint8_t mapBank = 0;
+unsigned char* mapTiles;//FAR_CALL(tilePtr,uint16_t (*)(void));
+unsigned char* mapPalette; //FAR_CALL(palettePtr,uint16_t (*)(void));
+uint8_t mapWidth; //FAR_CALL(widthPtr,uint8_t (*)(void));
+uint8_t mapHeight; //FAR_CALL(widthPtr,uint8_t (*)(void));
+
+
+struct MapPointer MAPPOINTERS[1];
+uint8_t currentMap;
+
+
+void initMapPointers() {
+	
+	struct MapPointer test = {
+		to_far_ptr(getMap09TilePlane, BANK(getMap09TilePlane)),
+		to_far_ptr(getMap09PalettePlane, BANK(getMap09PalettePlane)),
+		to_far_ptr(getMap09Width, BANK(getMap09Width)),
+		to_far_ptr(getMap09Height, BANK(getMap09Height)),
+		BANK(Map09PLN0)
+
+	};
+	MAPPOINTERS[0] = test;
+
+
+
+	mapTiles = FAR_CALL(MAPPOINTERS[currentMap].tilePtr,uint16_t (*)(void));
+	mapPalette = FAR_CALL(MAPPOINTERS[currentMap].palettePtr,uint16_t (*)(void));; //FAR_CALL(palettePtr,uint16_t (*)(void));
+	mapWidth = FAR_CALL(MAPPOINTERS[currentMap].widthPtr,uint8_t (*)(void));
+	mapHeight = FAR_CALL(MAPPOINTERS[currentMap].heightPtr,uint8_t (*)(void));
+	mapBank = MAPPOINTERS[currentMap].bank;
+
+}
 
 /*
 const MapObj MAPS[1] = {
@@ -45,7 +77,6 @@ const MapObj MAPS[1] = {
 };
 */
 
-uint8_t currentMap = 9;
 
 
 const UWORD primaryBackgroundPalette[] = {

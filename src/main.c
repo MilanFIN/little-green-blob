@@ -937,7 +937,7 @@ void updateTraps() {
 void main(){
 
 
-
+	initMapPointers();
 	//disable_interrupts();
 
 	DISPLAY_ON;
@@ -986,23 +986,21 @@ void main(){
 
 	//printf("%d", tilePlane);
 
-	SWITCH_ROM(currentMap);
-	FAR_PTR map09_tileFarPtr = to_far_ptr(getMap09TilePlane, BANK(getMap09TilePlane));
-	FAR_PTR map09_PaletteFarPtr = to_far_ptr(getMap09PalettePlane, BANK(getMap09PalettePlane));
-	FAR_PTR map09_widthFarPtr = to_far_ptr(getMap09Width, BANK(getMap09Width));
-	FAR_PTR map09_heightFarPtr = to_far_ptr(getMap09Height, BANK(getMap09Height));
-
-	const unsigned char* tiles = FAR_CALL(map09_tileFarPtr,uint16_t (*)(void));
-	const unsigned char* palette = FAR_CALL(map09_PaletteFarPtr,uint16_t (*)(void));
-	uint8_t width = FAR_CALL(map09_widthFarPtr,uint8_t (*)(void));
+	SWITCH_ROM(mapBank);
+	
+	//FAR_PTR map09_tileFarPtr = to_far_ptr(getMap09TilePlane, BANK(getMap09TilePlane));
+	//FAR_PTR map09_PaletteFarPtr = to_far_ptr(getMap09PalettePlane, BANK(getMap09PalettePlane));
+	//FAR_PTR map09_widthFarPtr = to_far_ptr(getMap09Width, BANK(getMap09Width));
+	//FAR_PTR map09_heightFarPtr = to_far_ptr(getMap09Height, BANK(getMap09Height));
+	
+	//const unsigned char* tiles = FAR_CALL(tilePtr,uint16_t (*)(void));
+	//const unsigned char* palette = FAR_CALL(palettePtr,uint16_t (*)(void));
+	//uint8_t width = FAR_CALL(widthPtr,uint8_t (*)(void));
 	//const uint8_t height = FAR_CALL(getMap09Height,uint8_t (*)(void));
-
-
-
 	VBK_REG = 1;
-	set_bkg_submap(0, 0, 20, 18, palette, width); //Map09PLN1
+	set_bkg_submap(0, 0, 20, 18, mapPalette, mapWidth); //Map09PLN1
 	VBK_REG = 0;
-	set_bkg_submap(0, 0, 20, 18, tiles, width);
+	set_bkg_submap(0, 0, 20, 18, mapTiles, mapWidth);
 
 	SWITCH_ROM(_saved_bank);
 
