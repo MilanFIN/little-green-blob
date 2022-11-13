@@ -18,9 +18,9 @@ typedef struct ProjectileObj {
 };
 */
 
-struct ProjectileObj projectiles[3];
+struct ProjectileObj projectiles[1];
 
-const uint8_t PROJECTILECOUNT = 3;
+const uint8_t PROJECTILECOUNT = 1;
 
 const uint16_t fireDelay = 20; //frames
 

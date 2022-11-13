@@ -2,7 +2,7 @@
 #include <gbdk/platform.h>
 #include <gbdk/far_ptr.h>
 
-#include <stdio.h>
+//#include <stdio.h>
 #include <gb/cgb.h>
 
 #include "tileset.h"
@@ -16,18 +16,20 @@
 #include "mapholder.h"
 #include "banked.h"
 
-//#include "playertiles.h"
-//#include "playerjumptiles.h"
-//#include "test.h"
 
-#include "playertiles0.h"
-#include "playertiles1.h"
-#include "playertiles2.h"
-#include "playertiles3.h"
-#include "playertiles4.h"
-#include "playertiles5.h"
-#include "playertiles6.h"
-#include "playertiles7.h"
+#include "palette.h"
+
+#include "playertiles.h"
+//#include "playertiles0.h"
+//#include "playertiles1.h"
+//#include "playertiles2.h"
+//#include "playertiles3.h"
+//#include "playertiles4.h"
+//#include "playertiles5.h"
+//#include "playertiles6.h"
+//#include "playertiles7.h"
+
+
 #include "projectile.h"
 
 #include "projectileholder.h"
@@ -56,16 +58,16 @@ const unsigned char TIMEPLATFORMBLOCKS[2] = {0x0c, 0x0d};
 
 
 const UWORD playerPalette[] = {
-	PlayerTiles0SGBPal0c0,
+	PlayerTiles0CGBPal0c0,
 	PlayerTiles0CGBPal0c1,
 	PlayerTiles0CGBPal0c2,
 	PlayerTiles0CGBPal0c3,
-	PlayerTiles0SGBPal1c0,
+	PlayerTiles0CGBPal1c0,
 	PlayerTiles0CGBPal1c1,
 	PlayerTiles0CGBPal1c2,
 	PlayerTiles0CGBPal1c3
-
 };
+
 
 
 const UWORD projectilePalette[] = {
@@ -75,6 +77,7 @@ const UWORD projectilePalette[] = {
 	ProjectileCGBPal0c3
 };
 
+/*
 const unsigned char* playerTilesets[] = {
 	PlayerTiles0,
 	PlayerTiles1,
@@ -85,7 +88,7 @@ const unsigned char* playerTilesets[] = {
 	PlayerTiles6,
 	PlayerTiles7
 };
-
+*/
 
 uint8_t _saved_bank;
 
@@ -162,8 +165,11 @@ uint8_t previousTile = 0;
 
 uint8_t old_map_pos_x = 255;
 uint8_t old_map_pos_y = 255;
-uint16_t oldXDiff = 0;
-uint16_t oldYDiff = 0;
+int16_t xDiff = 0;
+int16_t yDiff = 0;
+
+int16_t oldXDiff = 0;
+int16_t oldYDiff = 0;
 uint16_t onScreenX = 0;
 uint16_t onScreenY = 0;
 
@@ -211,7 +217,7 @@ void updateTraps() {
 	}
 }
 
-static inline void removeProjectile(uint8_t i) {
+ void removeProjectile(uint8_t i) {
 	projectiles[i].active = 0;
 	move_sprite(projectiles[i].tile, 200, 200);
 }
@@ -617,7 +623,11 @@ void moveVertical() {
 	uint16_t currentTile = (maxHp - hp) / 100;
 	currentTile = u16Clamp(currentTile,0, 7);
 	if (currentTile != previousTile) {
+		_saved_bank = _current_bank;
+		SWITCH_ROM(BANK(playerTilesets));
 		set_sprite_data(0, 16, playerTilesets[currentTile]);
+		SWITCH_ROM(_saved_bank);
+
 		previousTile = currentTile;
 	}
 
@@ -694,8 +704,8 @@ void updateEntityPositions(uint8_t force) {
 
 	_saved_bank = _current_bank;
 	SWITCH_ROM(mapBank);
-	int16_t xDiff = playerX - CENTERX;
-	int16_t yDiff = playerY - CENTERY - 32;
+	xDiff = playerX - CENTERX;
+	yDiff = playerY - CENTERY - 32;
 
 	if (xDiff < 0) {
 		xDiff = 0;
@@ -772,22 +782,27 @@ void updateEntityPositions(uint8_t force) {
 	SWITCH_ROM(_saved_bank);
 
 
+
+}
+
+void updateProjectilePositions() {
 	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
-	if (projectiles[i].active) {
-		//projectile positions
-		uint16_t projectileScreenX = projectiles[i].x - xDiff;
-		uint16_t projectileScreenY = projectiles[i].y - yDiff;
-		//position probably overflows at values > 256
-		if (projectileScreenX > 0 && projectileScreenX < 200 && projectileScreenY > 0 && projectileScreenY < 200) {
-			move_sprite(projectiles[i].tile, projectileScreenX+4, projectileScreenY);
-		}
-		else {
-			move_sprite(projectiles[i].tile, 220, 220);
+		if (projectiles[i].active) {
+			//projectile positions
+			uint16_t projectileScreenX = projectiles[i].x - xDiff;
+			uint16_t projectileScreenY = projectiles[i].y - yDiff;
+			//position probably overflows at values > 256
+			if (projectileScreenX > 0 && projectileScreenX < 200 && projectileScreenY > 0 && projectileScreenY < 200) {
+				move_sprite(projectiles[i].tile, projectileScreenX+4, projectileScreenY);
+			}
+			else {
+				move_sprite(projectiles[i].tile, 220, 220);
+			}
 		}
 	}
-}
 	
 }
+
 //shuffling to initialize bkg submap correctly
 void shufflePlayer(uint16_t x, uint16_t y) {
 
@@ -863,7 +878,7 @@ void initProjectiles() {
 	}
 }
 
-void startLevel() {
+void startLevel()  {
 
 	//red/blue switch for switchblocks, 0 for red
 	uint8_t switchState = 0;
@@ -943,6 +958,20 @@ void startLevel() {
 
 void main(){
 
+	/*
+	playerPalette[0] = PlayerTiles0CGBPal0c0;
+	playerPalette[1] = PlayerTiles0CGBPal0c1;
+	playerPalette[2] = PlayerTiles0CGBPal0c2;
+	playerPalette[3] = PlayerTiles0CGBPal0c3;
+	playerPalette[4] = PlayerTiles0CGBPal1c0;
+	playerPalette[5] = PlayerTiles0CGBPal1c1;
+	playerPalette[6] = PlayerTiles0CGBPal1c2;
+	playerPalette[7] = PlayerTiles0CGBPal1c3;
+	*/
+
+
+
+
 	_saved_bank = _current_bank;
 	initMapPointers(0);
 
@@ -966,7 +995,10 @@ void main(){
 
 	set_sprite_palette(0, 1, &playerPalette[0]); // loading 1 palette of 4 colors
 
+	SWITCH_ROM(BANK(playerTilesets));
 	set_sprite_data(0, 16, playerTilesets[0]);
+	SWITCH_ROM(_saved_bank);
+
 
 
 	set_sprite_data(16, 2, Projectile);
@@ -1014,6 +1046,7 @@ void main(){
 			moveHorizontal();
 			moveVertical();
 			updateEntityPositions(0);
+			updateProjectilePositions();
 			animatePlayer();
 
 			
