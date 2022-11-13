@@ -20,14 +20,6 @@
 #include "palette.h"
 
 #include "playertiles.h"
-//#include "playertiles0.h"
-//#include "playertiles1.h"
-//#include "playertiles2.h"
-//#include "playertiles3.h"
-//#include "playertiles4.h"
-//#include "playertiles5.h"
-//#include "playertiles6.h"
-//#include "playertiles7.h"
 
 
 #include "projectile.h"
@@ -827,7 +819,6 @@ void shufflePlayer(uint16_t x, uint16_t y) {
 			playerY += 1;
 		}
 		updateEntityPositions(1);
-
 	}
 	
 	while (playerY > y || playerX > x) {
@@ -841,12 +832,28 @@ void shufflePlayer(uint16_t x, uint16_t y) {
 		if (playerX - 8 > x) {
 			playerX -= 8; //8
 		}
-		else if (playerX > x) {
+		else if (playerX >x) {
 			playerX--;
 		}
 		updateEntityPositions(1);
-
+	}	
+	/*
+	while (playerX < x || playerY < y ) {
+		if (playerX + 8 < x) {
+			playerX += 8; //8
+		}
+		else if (playerX < x) {
+			playerX += 1;
+		}
+		if (playerY + 8 < y) {
+			playerY += 8; //8
+		}
+		else if (playerY < y) {
+			playerY += 1;
+		}
+		updateEntityPositions(1);
 	}
+	*/
 	
 	playerX = x;
 	playerY = y;
@@ -897,12 +904,14 @@ void startLevel()  {
 
 	set_bkg_palette(0, 8, &primaryBackgroundPalette[0]);
 	
-
+	_saved_bank = _current_bank;
+	SWITCH_ROM(BANK(Tileset));
 	set_bkg_data(0, 14, Tileset); 
+	SWITCH_ROM(_current_bank);
+
 	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
 
 	
-	_saved_bank = _current_bank;
 	SWITCH_ROM(mapBank);
 	VBK_REG = 1;
 	set_bkg_submap(0, 0, 20, 18, mapPalette, mapWidth); //Map09PLN1
@@ -973,7 +982,7 @@ void main(){
 
 
 	_saved_bank = _current_bank;
-	initMapPointers(0);
+	initMapPointers(4);
 
 	//disable_interrupts();
 
@@ -1014,11 +1023,11 @@ void main(){
 
 
 	//debug
+	/*
 	set_bkg_palette(0, 8, &primaryBackgroundPalette[0]);
 	set_bkg_data(0, 14, Tileset); 
 	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 	
-
-
+	*/
 	/*
 	_saved_bank = _current_bank;
 	SWITCH_ROM(mapBank);

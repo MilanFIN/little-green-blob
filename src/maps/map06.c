@@ -1,6 +1,6 @@
 #include <gbdk/platform.h>
 
-#pragma bank 185
+#pragma bank 255
 
 /*
 

@@ -1,7 +1,7 @@
 #include <gbdk/platform.h>
 #include <gb/gb.h>
 
-#pragma bank 100
+#pragma bank 255
 
 /*
 BANKREF(FLOORTILES)
