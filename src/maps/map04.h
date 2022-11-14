@@ -20,13 +20,28 @@
 #ifndef __map04_h_INCLUDE
 #define __map04_h_INCLUDE
 
-#define Map04Width 45
-#define Map04Height 20
-#define Map04Bank 0
 
-#define Map04 Map04PLN0
+const unsigned char* getMap04TilePlane() BANKED;
+BANKREF_EXTERN(getMap04TilePlane)
+const unsigned char* getMap04PalettePlane() BANKED;
+BANKREF_EXTERN(getMap04PalettePlane)
+
+extern const uint8_t getMap04Width() BANKED;
+BANKREF_EXTERN(getMap04Width)
+extern const uint8_t getMap04Height() BANKED;
+BANKREF_EXTERN(getMap04Height)
+
+
+
+extern const uint8_t Map04Width;
+BANKREF_EXTERN(Map04Width)
+extern const uint8_t Map04Height;
+BANKREF_EXTERN(Map04Height)
+
 extern const unsigned char Map04PLN0[];
+BANKREF_EXTERN(Map04PLN0)
 extern const unsigned char Map04PLN1[];
+BANKREF_EXTERN(Map04PLN1)
 
 #endif
 

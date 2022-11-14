@@ -1,4 +1,6 @@
-#pragma bank 192
+#include <gbdk/platform.h>
+
+#pragma bank 255
 
 /*
 
@@ -20,11 +22,15 @@
 
 */
 
-#define Map03Width 45
-#define Map03Height 20
-#define Map03Bank 0
 
-#define Map03 Map03PLN0
+
+BANKREF(Map03Width)
+const uint8_t Map03Width = 45;
+BANKREF(Map03Height)
+const uint8_t Map03Height = 20;
+
+
+BANKREF(Map03PLN0)
 const unsigned char Map03PLN0[] =
 {
   0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,
@@ -119,6 +125,7 @@ const unsigned char Map03PLN0[] =
   0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01
 };
 
+BANKREF(Map03PLN01)
 const unsigned char Map03PLN1[] =
 {
   0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,
@@ -214,3 +221,20 @@ const unsigned char Map03PLN1[] =
 };
 
 /* End of MAP03.C */
+BANKREF(getMap03TilePlane)
+unsigned char* getMap03TilePlane() __banked {
+    return &Map03PLN0;
+}
+BANKREF(getMap03PalettePlane)
+unsigned char* getMap03PalettePlane() __banked {
+    return &Map03PLN1;
+}
+
+BANKREF(getMap03Width)
+const uint8_t getMap03Width() __banked {
+    return Map03Width;
+}
+BANKREF(getMap03Height)
+const uint8_t getMap03Height() __banked {
+    return Map03Height;
+}

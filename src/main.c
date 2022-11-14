@@ -255,7 +255,7 @@ void moveProjectiles() {
 
 		
 			
-			if  (i16abs(playerX - projectiles[i].x) > 1000 || i16abs(playerY - projectiles[i].y) > 1000) {
+			if  (i16abs(playerX - projectiles[i].x) > 300 || i16abs(playerY - projectiles[i].y) > 300) {
 				removeProjectile(i);
 			}
 			
@@ -489,6 +489,12 @@ inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 	}
 	
 	else {
+		if (mapTiles[ind] == SWITCHBLOCKS[0] && switchState == 0) {
+			return 0;
+		}
+		if (mapTiles[ind] == SWITCHBLOCKS[1] && switchState == 1) {
+			return 0;
+		}
 
 		return 1;
 	}
@@ -967,22 +973,10 @@ void startLevel()  {
 
 void main(){
 
-	/*
-	playerPalette[0] = PlayerTiles0CGBPal0c0;
-	playerPalette[1] = PlayerTiles0CGBPal0c1;
-	playerPalette[2] = PlayerTiles0CGBPal0c2;
-	playerPalette[3] = PlayerTiles0CGBPal0c3;
-	playerPalette[4] = PlayerTiles0CGBPal1c0;
-	playerPalette[5] = PlayerTiles0CGBPal1c1;
-	playerPalette[6] = PlayerTiles0CGBPal1c2;
-	playerPalette[7] = PlayerTiles0CGBPal1c3;
-	*/
-
 
 
 
 	_saved_bank = _current_bank;
-	initMapPointers(4);
 
 	//disable_interrupts();
 
@@ -1042,8 +1036,7 @@ void main(){
 	while(1) {
 
 
-
-		
+		initMapPointers(currentMap);
 		startLevel();
 
 		while(1) {
@@ -1085,6 +1078,10 @@ void main(){
 
 
 			if (checkFinish(finishTileIndex, mapWidth, playerX, playerY)) {
+				currentMap++;
+				if (currentMap >= MAPCOUNT) {
+					currentMap = 0;
+				}
 				break;
 			}
 
