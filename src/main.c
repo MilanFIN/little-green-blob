@@ -29,8 +29,9 @@
 
 
 //TODO: 
-//mapholder eriyttäminen, kutsun mukana esim parametrit pointterit bank, tiles, palette, width, height
-// 
+//vivun osuma on epävarmaa
+//ulos/alas suuntautuva efekti, kun osuu maahan
+//menosuuntaan nähden taakse efekti, kun kutistuu liikkuessa
 
 
 const unsigned char FLOORTILES[2] = {0x01, 0x06}; 
@@ -53,8 +54,8 @@ unsigned char* mapPalette; //FAR_CALL(palettePtr,uint16_t (*)(void));
 uint8_t mapWidth; //FAR_CALL(widthPtr,uint8_t (*)(void));
 uint8_t mapHeight; //FAR_CALL(widthPtr,uint8_t (*)(void));
 
-uint8_t currentMap = 3;
-const uint8_t MAPCOUNT = 11;
+uint8_t currentMap = 0;
+const uint8_t MAPCOUNT = 12;
 
 
 
@@ -497,7 +498,7 @@ inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 
 //presumes that bank has been set to mapbank
 inline void addGravity() {
-	uint16_t ind = mapWidth*((playerY - 8)>>3) + ((playerX)>>3);
+	uint16_t ind = mapWidth*((playerY - 2)>>3) + ((playerX)>>3);
 	ySpeed += AIRGRAVITY;
 
 	
@@ -809,35 +810,48 @@ void shufflePlayer(uint16_t x, uint16_t y) {
 		if (playerX + 8 < mapWidth*8) {
 			playerX += 8; //8
 		}
-		if (playerX < mapWidth*8) {
+		else if (playerX < mapWidth*8) {
 			playerX += 1;
 		}
 		if (playerY + 8 < mapHeight*8) {
 			playerY += 8; //8
 		}
-		if (playerY < mapHeight*8) {
+		else if (playerY < mapHeight*8) {
 			playerY += 1;
 		}
 		updateEntityPositions(1);
 	}
-	
-	while (playerY > y || playerX > x) {
 
-		if (playerY - 8 > y) {
-			playerY -= 8; //8
+	while (playerY > 0 || playerX > 0) {
+		if (playerY > 8) {
+			playerY -= 8;
 		}
-		else if (playerY > y) {
+		else if (playerY > 0) {
 			playerY--;
 		}
-		if (playerX - 8 > x) {
-			playerX -= 8; //8
+		if (playerX > 8) {
+			playerX -= 8;
 		}
-		else if (playerX >x) {
+		else if (playerX > 0) {
 			playerX--;
 		}
 		updateEntityPositions(1);
 	}	
-	
+	while (playerY < y || playerX < x) {
+		if (playerY + 8 < y) {
+			playerY += 8; //8
+		}
+		else if (playerY < y) {
+			playerY++;
+		}
+		if (playerX + 8 < x) {
+			playerX += 8; //8
+		}
+		else if (playerX < x) {
+			playerX++;
+		}
+		updateEntityPositions(1);
+	}	
 	playerX = x;
 	playerY = y;
 		
