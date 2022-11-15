@@ -2,7 +2,6 @@
 #include <gbdk/platform.h>
 #include <gbdk/far_ptr.h>
 
-//#include <stdio.h>
 #include <gb/cgb.h>
 
 #include "tileset.h"
@@ -30,9 +29,8 @@
 
 
 //TODO: 
-// paletin vaihto kun ottaa vahinkoa, ja ajoittain kun esim hp <200
-// aaltoefekti kun ylilatautunut hp? skaala hp:n perusteella, lähestyy hiljalleen maxhp
-// alas + a pudottautuu?
+//mapholder eriyttäminen, kutsun mukana esim parametrit pointterit bank, tiles, palette, width, height
+// 
 
 
 const unsigned char FLOORTILES[2] = {0x01, 0x06}; 
@@ -45,6 +43,19 @@ const unsigned char SWITCHBLOCKS[2] = {0x08, 0x09};
 const uint8_t SWITCHTILE = 0x0a;
 const unsigned char TIMETRAPBLOCKS[1] = {0x0b}; 
 const unsigned char TIMEPLATFORMBLOCKS[2] = {0x0c, 0x0d}; 
+
+
+
+
+uint8_t mapBank;
+unsigned char* mapTiles;//FAR_CALL(tilePtr,uint16_t (*)(void));
+unsigned char* mapPalette; //FAR_CALL(palettePtr,uint16_t (*)(void));
+uint8_t mapWidth; //FAR_CALL(widthPtr,uint8_t (*)(void));
+uint8_t mapHeight; //FAR_CALL(widthPtr,uint8_t (*)(void));
+
+uint8_t currentMap = 3;
+const uint8_t MAPCOUNT = 11;
+
 
 
 
@@ -173,23 +184,6 @@ const uint8_t FALLDAMAGESCALE = 1;
 
 uint16_t hatHeight;
 uint16_t sideEdge;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -843,23 +837,6 @@ void shufflePlayer(uint16_t x, uint16_t y) {
 		}
 		updateEntityPositions(1);
 	}	
-	/*
-	while (playerX < x || playerY < y ) {
-		if (playerX + 8 < x) {
-			playerX += 8; //8
-		}
-		else if (playerX < x) {
-			playerX += 1;
-		}
-		if (playerY + 8 < y) {
-			playerY += 8; //8
-		}
-		else if (playerY < y) {
-			playerY += 1;
-		}
-		updateEntityPositions(1);
-	}
-	*/
 	
 	playerX = x;
 	playerY = y;
@@ -971,6 +948,8 @@ void startLevel()  {
 
 }
 
+
+
 void main(){
 
 
@@ -994,8 +973,7 @@ void main(){
 	SHOW_BKG;
 
 
-
-
+	
 	set_sprite_palette(0, 1, &playerPalette[0]); // loading 1 palette of 4 colors
 
 	SWITCH_ROM(BANK(playerTilesets));
@@ -1016,27 +994,20 @@ void main(){
 
 
 
-	//debug
-	/*
-	set_bkg_palette(0, 8, &primaryBackgroundPalette[0]);
-	set_bkg_data(0, 14, Tileset); 
-	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 	
-	*/
-	/*
-	_saved_bank = _current_bank;
-	SWITCH_ROM(mapBank);
-	VBK_REG = 1;
-	set_bkg_submap(0, 0, 20, 18, mapPalette, mapWidth); //Map09PLN1
-	VBK_REG = 0;
-	set_bkg_submap(0, 0, 20, 18, mapTiles, mapWidth);
-	SWITCH_ROM(_saved_bank);
-	*/
 
 
 	while(1) {
 
 
-		initMapPointers(currentMap);
+		//initMapPointers(currentMap);
+		mapBank = getMapBank(currentMap);
+		mapWidth = getMapWidth(currentMap);
+		mapHeight = getMapHeight(currentMap);
+
+		mapTiles = getMapTiles(currentMap);
+		mapPalette = getMapPalette(currentMap);
+
+		
 		startLevel();
 
 		while(1) {
@@ -1100,6 +1071,7 @@ void main(){
 
 
 		}
+		
 
 	}
 	
