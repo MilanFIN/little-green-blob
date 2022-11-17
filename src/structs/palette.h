@@ -41,50 +41,41 @@
 
 
 
-
-/* Gameboy Color palette 0 */
 #define TilesetCGBPal0c0 26425
 #define TilesetCGBPal0c1 8935
 #define TilesetCGBPal0c2 6596
 #define TilesetCGBPal0c3 0
 
-/* Gameboy Color palette 1 */
 #define TilesetCGBPal1c0 14318
 #define TilesetCGBPal1c1 2848
 #define TilesetCGBPal1c2 611
 #define TilesetCGBPal1c3 0
 
-/* Gameboy Color palette 2 */
 #define TilesetCGBPal2c0 26431
 #define TilesetCGBPal2c1 30
 #define TilesetCGBPal2c2 25
 #define TilesetCGBPal2c3 0
 
-/* Gameboy Color palette 3 */
 #define TilesetCGBPal3c0 26425
 #define TilesetCGBPal3c1 32290
 #define TilesetCGBPal3c2 25600
 #define TilesetCGBPal3c3 0
 
-/* Gameboy Color palette 4 */
 #define TilesetCGBPal4c0 26425
 #define TilesetCGBPal4c1 467
 #define TilesetCGBPal4c2 10570
 #define TilesetCGBPal4c3 0
 
-/* Gameboy Color palette 5 */
 #define TilesetCGBPal5c0 6076
 #define TilesetCGBPal5c1 16928
 #define TilesetCGBPal5c2 10560
 #define TilesetCGBPal5c3 0
 
-/* Gameboy Color palette 6 */
 #define TilesetCGBPal6c0 6076
 #define TilesetCGBPal6c1 8935
 #define TilesetCGBPal6c2 6596
 #define TilesetCGBPal6c3 5344
 
-/* Gameboy Color palette 7 */
 #define TilesetCGBPal7c0 6076
 #define TilesetCGBPal7c1 8935
 #define TilesetCGBPal7c2 6596

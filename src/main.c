@@ -29,10 +29,12 @@
 
 
 //TODO: 
+//karttojen export pitäis olla 8/8 ei 7/3
+// map 12 block pois per tason reuna
+
 //vivun osuma on epävarmaa
 //ulos/alas suuntautuva efekti, kun osuu maahan
 //menosuuntaan nähden taakse efekti, kun kutistuu liikkuessa
-
 
 const unsigned char FLOORTILES[2] = {0x01, 0x06}; 
 const uint8_t FLOORTILECOUNT = 2;
@@ -54,8 +56,8 @@ unsigned char* mapPalette; //FAR_CALL(palettePtr,uint16_t (*)(void));
 uint8_t mapWidth; //FAR_CALL(widthPtr,uint8_t (*)(void));
 uint8_t mapHeight; //FAR_CALL(widthPtr,uint8_t (*)(void));
 
-uint8_t currentMap = 12;
-const uint8_t MAPCOUNT = 13;
+uint8_t currentMap = 13;
+const uint8_t MAPCOUNT = 14;
 
 
 
@@ -194,10 +196,12 @@ void updateTraps() {
 	if (timeTrapCounter == 0) {
 		if (timeTrapState) {
 			timeTrapState = 0;
+			VBK_REG=0;
 			set_bkg_data(TIMETRAPBLOCKS[0], 3, TimeTrapsDown); 
 		}
 		else {
 			timeTrapState = 1;
+			VBK_REG=0;
 			set_bkg_data(TIMETRAPBLOCKS[0], 3, TimeTrapsUp); 
 		}
 		timeTrapCounter = TIMETRAPTIMELIMIT;
@@ -214,11 +218,13 @@ void switchBlocks() {
 
 	if (switchState) {
 		switchState = 0;
+		VBK_REG=0;
 		set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
 
 	}
 	else {
 		switchState = 1;
+		VBK_REG=0;
 		set_bkg_data(SWITCHBLOCKS[0], 3, SecondaryBlocks); 
 	}
 }
@@ -585,7 +591,7 @@ void moveVertical() {
 			set_sprite_tile(0, 8);
 			set_sprite_tile(1,  10);
 		}
-		else if (jumping < 12 && !onGround ) {
+		else if (jumping < 12 && !onGround && ySpeed < 0) {
 			jumping += 1;
 			ySpeed -= JUMPCARRY;
 		}
@@ -885,9 +891,9 @@ void initProjectiles() {
 void startLevel()  {
 
 	//red/blue switch for switchblocks, 0 for red
-	uint8_t switchState = 0;
+	switchState = 0;
 	//raises/lowers spike traps, 0 for down
-	uint8_t timeTrapState = 1;
+	timeTrapState = 1;
 
 
 	xSpeed = 0;
@@ -903,6 +909,7 @@ void startLevel()  {
 	
 	_saved_bank = _current_bank;
 	SWITCH_ROM(BANK(Tileset));
+	VBK_REG=0;
 	set_bkg_data(0, 14, Tileset); 
 	SWITCH_ROM(_current_bank);
 

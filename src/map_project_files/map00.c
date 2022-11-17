@@ -1,6 +1,3 @@
-#include <gbdk/platform.h>
-
-#pragma bank 255
 /*
 
  MAP00.C
@@ -11,7 +8,7 @@
    Section       : 
    Bank          : 0
    Map size      : 30 x 20
-   Tile set      : Z:\home\milan\Documents\gameboy\splat\src\maps\tileset.gbr
+   Tile set      : tileset.gbr
    Plane count   : 2 planes (16 bits)
    Plane order   : Planes are continues
    Tile offset   : 0
@@ -21,13 +18,11 @@
 
 */
 
-BANKREF(Map00Width)
-const uint8_t Map00Width = 30;
-BANKREF(Map00Height)
-const uint8_t Map00Height = 20;
+#define Map00Width 30
+#define Map00Height 20
+#define Map00Bank 0
 
-
-BANKREF(Map00PLN0)
+#define Map00 Map00PLN0
 const unsigned char Map00PLN0[] =
 {
   0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,
@@ -92,7 +87,6 @@ const unsigned char Map00PLN0[] =
   0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01
 };
 
-BANKREF(Map00PLN01)
 const unsigned char Map00PLN1[] =
 {
   0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,
@@ -158,20 +152,3 @@ const unsigned char Map00PLN1[] =
 };
 
 /* End of MAP00.C */
-BANKREF(getMap00TilePlane)
-unsigned char* getMap00TilePlane() __banked {
-    return &Map00PLN0;
-}
-BANKREF(getMap00PalettePlane)
-unsigned char* getMap00PalettePlane() __banked {
-    return &Map00PLN1;
-}
-
-BANKREF(getMap00Width)
-const uint8_t getMap00Width() __banked {
-    return Map00Width;
-}
-BANKREF(getMap00Height)
-const uint8_t getMap00Height() __banked {
-    return Map00Height;
-}
