@@ -56,8 +56,8 @@ unsigned char* mapPalette; //FAR_CALL(palettePtr,uint16_t (*)(void));
 uint8_t mapWidth; //FAR_CALL(widthPtr,uint8_t (*)(void));
 uint8_t mapHeight; //FAR_CALL(widthPtr,uint8_t (*)(void));
 
-uint8_t currentMap = 13;
-const uint8_t MAPCOUNT = 14;
+uint8_t currentMap = 14;
+const uint8_t MAPCOUNT = 15;
 
 
 

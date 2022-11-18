@@ -1,6 +1,7 @@
 #include <gbdk/platform.h>
 #include <gbdk/far_ptr.h>
 
+#include "map14.h"
 #include "map13.h"
 #include "map12.h"
 #include "map11.h"
@@ -71,6 +72,9 @@ uint8_t getMapBank(uint8_t  mapNumber) BANKED {
 		case 13:
 			mapBank = BANK(Map13PLN0);
 			break;
+		case 14:
+			mapBank = BANK(Map14PLN0);
+			break;
 		default:
 			mapBank = BANK(Map00PLN0);	
 	}
@@ -127,6 +131,9 @@ uint8_t getMapWidth(uint8_t  mapNumber) BANKED {
 			break;		
 		case 13:
 			widthPtr = to_far_ptr(getMap13Width, BANK(getMap13Width));
+			break;	
+		case 14:
+			widthPtr = to_far_ptr(getMap14Width, BANK(getMap14Width));
 			break;	
 		default:
 			widthPtr = to_far_ptr(getMap00Width, BANK(getMap00Width));			
@@ -185,6 +192,9 @@ uint8_t getMapHeight(uint8_t  mapNumber) BANKED {
 		case 13:
 			heightPtr = to_far_ptr(getMap13Height, BANK(getMap13Height));
 			break;
+		case 14:
+			heightPtr = to_far_ptr(getMap14Height, BANK(getMap14Height));
+			break;
 		default:
 			heightPtr = to_far_ptr(getMap00Height, BANK(getMap00Height));
 	}
@@ -241,6 +251,9 @@ uint16_t getMapTiles(uint8_t mapNumber) BANKED {
 		case 13:
 			tilePtr = to_far_ptr(getMap13TilePlane, BANK(getMap13TilePlane));
 			break;
+		case 14:
+			tilePtr = to_far_ptr(getMap14TilePlane, BANK(getMap14TilePlane));
+			break;
 		default:
 			tilePtr = to_far_ptr(getMap00TilePlane, BANK(getMap00TilePlane));			
 	}
@@ -295,6 +308,9 @@ uint16_t getMapPalette(uint8_t mapNumber) BANKED {
 			break;	
 		case 13:
 			palettePtr = to_far_ptr(getMap13PalettePlane, BANK(getMap13PalettePlane));
+			break;	
+		case 14:
+			palettePtr = to_far_ptr(getMap14PalettePlane, BANK(getMap14PalettePlane));
 			break;	
 		default:
 			palettePtr = to_far_ptr(getMap00PalettePlane, BANK(getMap00PalettePlane));			
