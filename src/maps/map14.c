@@ -1,6 +1,6 @@
 #include <gbdk/platform.h>
 
-#pragma bank 100
+#pragma bank 255
 /*
 
  MAP14.C
