@@ -56,7 +56,7 @@ unsigned char* mapPalette; //FAR_CALL(palettePtr,uint16_t (*)(void));
 uint8_t mapWidth; //FAR_CALL(widthPtr,uint8_t (*)(void));
 uint8_t mapHeight; //FAR_CALL(widthPtr,uint8_t (*)(void));
 
-uint8_t currentMap = 15;
+uint8_t currentMap = 0;
 const uint8_t MAPCOUNT = 16;
 
 
@@ -83,18 +83,7 @@ const UWORD projectilePalette[] = {
 	ProjectileCGBPal0c3
 };
 
-/*
-const unsigned char* playerTilesets[] = {
-	PlayerTiles0,
-	PlayerTiles1,
-	PlayerTiles2,
-	PlayerTiles3,
-	PlayerTiles4,
-	PlayerTiles5,
-	PlayerTiles6,
-	PlayerTiles7
-};
-*/
+
 
 uint8_t _saved_bank;
 
@@ -176,8 +165,10 @@ int16_t yDiff = 0;
 
 int16_t oldXDiff = 0;
 int16_t oldYDiff = 0;
-uint16_t onScreenX = 0;
-uint16_t onScreenY = 0;
+int16_t onScreenX = 0;
+int16_t onScreenY = 0;
+
+int16_t oldOnScreenX = 0;
 
 
 //how many times fall damage is bit shifted right before applying
@@ -569,6 +560,7 @@ void moveVertical() {
 				playerHurt = 1;
 				playerHurtPaletteTime = uClamp(ySpeed >> 4, 1, 10);
 				hp -= ySpeed >> FALLDAMAGESCALE;
+				spawnSplash(onScreenX, onScreenY);
 			}
 			jumping = 0;
 			ySpeed = 0;
@@ -717,6 +709,7 @@ void updateEntityPositions(uint8_t force) {
 	if (xDiff > (mapWidth << 3) - 160) { //map width - 160 = (95)
 		xDiff = (mapWidth << 3) - 160;
 	}
+
 	if (yDiff < 0) {
 		yDiff = 0;
 	}
@@ -730,15 +723,16 @@ void updateEntityPositions(uint8_t force) {
 	move_sprite(1, onScreenX + 8, onScreenY);
 
 
-	
-
 
 
     uint8_t map_pos_x = (uint8_t)(xDiff >> 3u);
 	uint8_t map_pos_y = (uint8_t)(yDiff >> 3u);
 	
+
+
 	//x direction
 	if (map_pos_x != old_map_pos_x || force) {
+
 		if (xDiff < oldXDiff) {
 			VBK_REG = 1;
 			set_bkg_submap(map_pos_x, map_pos_y, 1, MIN(19u, mapHeight - map_pos_y), mapPalette, mapWidth);     
@@ -753,9 +747,8 @@ void updateEntityPositions(uint8_t force) {
 			}   
 		}
 		old_map_pos_x = map_pos_x;
-		oldXDiff = xDiff;
+		//oldXDiff = xDiff;
     }
-
 	//y direction
 	if (map_pos_y != old_map_pos_y || force) { 
 		if (yDiff < oldYDiff) {
@@ -774,11 +767,16 @@ void updateEntityPositions(uint8_t force) {
 			}   
 		}
 		old_map_pos_y = map_pos_y;
-		oldYDiff = yDiff;
 
     }
-
 	
+	
+	scrollSplash(oldXDiff - xDiff, oldYDiff - yDiff);
+	
+
+	oldXDiff = xDiff;
+	oldYDiff = yDiff;
+
 
     SCX_REG = xDiff; SCY_REG = yDiff; 
 
@@ -895,6 +893,7 @@ void initProjectiles() {
 
 void startLevel()  {
 
+	initSplashDownSprite();
 	//red/blue switch for switchblocks, 0 for red
 	switchState = 0;
 	//raises/lowers spike traps, 0 for down
@@ -1068,6 +1067,7 @@ void main(){
 
 			checkProjectileCollisions();
 			updateTraps();
+			loopSplash();
 
 			framesSinceLastFire++;
 			timeTrapCounter--;

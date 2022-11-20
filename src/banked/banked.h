@@ -4,44 +4,13 @@
 #define _banked_h
 
 /*
-extern const unsigned char FLOORTILES[2];
-BANKREF_EXTERN(FLOORTILES)
-
-extern const uint8_t FLOORTILECOUNT;
-BANKREF_EXTERN(FLOORTILECOUNT)
-
-extern const unsigned char ROOFTILES[1];
-BANKREF_EXTERN(ROOFTILES)
-
-extern const uint8_t ROOFTILECOUNT;
-BANKREF_EXTERN(ROOFTILECOUNT)
-
-extern const unsigned char OBSTACLETILES[1];
-BANKREF_EXTERN(OBSTACLETILES)
-
-extern const uint8_t OBSTACLECOUNT;
-BANKREF_EXTERN(OBSTACLETILES)
-
-extern const unsigned char SWITCHBLOCKS[2];
-BANKREF_EXTERN(SWITCHBLOCKS)
 
 extern const uint8_t SWITCHTILE;
 BANKREF_EXTERN(SWITCHTILE)
 
 extern const unsigned char TIMETRAPBLOCKS[1];
 BANKREF_EXTERN(TIMETRAPBLOCKS)
-
-extern const unsigned char TIMEPLATFORMBLOCKS[2];
-BANKREF_EXTERN(TIMEPLATFORMBLOCKS)
 */
-
-
-
-
-
-
-
-
 
 
 
@@ -64,5 +33,20 @@ BANKREF_EXTERN(playDeathAnimation)
 
 uint8_t checkFinish(uint16_t finishTileIndex, uint16_t mapWidth, uint16_t x, uint16_t y) BANKED;
 BANKREF_EXTERN(checkFinish)
+
+
+void initSplashDownSprite() BANKED;
+BANKREF_EXTERN(initSplashDownSprite)
+
+
+void spawnSplash(uint16_t x, uint16_t y) BANKED;
+BANKREF_EXTERN(spawnSplash)
+
+void scrollSplash(int16_t xchange, int16_t ychange) BANKED;
+BANKREF_EXTERN(scrollSplash)
+
+void loopSplash() BANKED;
+BANKREF_EXTERN(loopSplash)
+
 
 #endif
