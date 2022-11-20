@@ -62,12 +62,12 @@ BANKREF(get_MAPNAME_TilePlane)
 unsigned char* get_MAPNAME_TilePlane() __banked {
     return &_MAPNAME_PLN0;
 }
-BANKREF(get_MAPNAME_4PalettePlane)
+BANKREF(get_MAPNAME_PalettePlane)
 unsigned char* get_MAPNAME_PalettePlane() __banked {
     return &_MAPNAME_PLN1;
 }
 
-BANKREF(getM_MAPNAME_Width)
+BANKREF(get_MAPNAME_Width)
 const uint8_t get_MAPNAME_Width() __banked {
     return _MAPNAME_Width;
 }
@@ -104,7 +104,7 @@ def convert(header, source):
 	with open(source) as f:
 		lines = f.readlines()
 		for line in lines:
-#define Map14Width 20
+
 			if ("#define "+mapname+"Width " in line):
 				mapWidth = line.split(' ')[-1]
 			if ("#define "+mapname+"Height " in line):
@@ -130,7 +130,9 @@ def convert(header, source):
 									.replace("_PLN1CONTENT_", pln1content) \
 									.replace("_MAPWIDTH_", mapWidth) \
 									.replace("_MAPHEIGHT_", mapHeight)
-	print(sourceOutput)
+	with open(source+".out", "w") as output:
+		output.write(sourceOutput)
+
 
 
 

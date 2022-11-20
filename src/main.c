@@ -56,8 +56,8 @@ unsigned char* mapPalette; //FAR_CALL(palettePtr,uint16_t (*)(void));
 uint8_t mapWidth; //FAR_CALL(widthPtr,uint8_t (*)(void));
 uint8_t mapHeight; //FAR_CALL(widthPtr,uint8_t (*)(void));
 
-uint8_t currentMap = 14;
-const uint8_t MAPCOUNT = 15;
+uint8_t currentMap = 15;
+const uint8_t MAPCOUNT = 16;
 
 
 
@@ -496,7 +496,12 @@ inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 		if (mapTiles[ind] == SWITCHBLOCKS[1] && switchState == 1) {
 			return 0;
 		}
-
+		if (mapTiles[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
+			return 0;
+		}		
+		if (mapTiles[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
+			return 0;
+		}
 		return 1;
 	}
 }
