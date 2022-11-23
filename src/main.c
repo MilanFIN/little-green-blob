@@ -56,8 +56,8 @@ unsigned char* mapPalette; //FAR_CALL(palettePtr,uint16_t (*)(void));
 uint8_t mapWidth; //FAR_CALL(widthPtr,uint8_t (*)(void));
 uint8_t mapHeight; //FAR_CALL(widthPtr,uint8_t (*)(void));
 
-uint8_t currentMap = 0;
-const uint8_t MAPCOUNT = 16;
+uint8_t currentMap = 17;
+const uint8_t MAPCOUNT = 18;
 
 
 
@@ -502,6 +502,9 @@ inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
 inline void addGravity() {
 	uint16_t ind = mapWidth*((playerY - 2)>>3) + ((playerX)>>3);
 	ySpeed += AIRGRAVITY;
+	if (ySpeed > 256) {
+		ySpeed = 256;
+	}
 
 	
 	if (mapTiles[ind] == 0x02 || mapTiles[ind] == 0x03 ) {
@@ -811,7 +814,7 @@ void shufflePlayer(uint16_t x, uint16_t y) {
 	_saved_bank = _current_bank;
 	SWITCH_ROM(mapBank);
 
-	//DISPLAY_OFF;
+	DISPLAY_OFF;
 
 	playerX = 0;
 	playerY = 0;
@@ -881,7 +884,7 @@ void initProjectiles() {
 		projectiles[i].scaledX = 200 << 3;
 		projectiles[i].scaledY = 200 << 3;
 		projectiles[i].tile = 10 + i;
-		projectiles[i].framesSinceActivation = 0;
+		projectiles[i].framesSinceActivation = PROJECTILEACTIVATIONCOOLDOWN;
 
 
 		set_sprite_tile(projectiles[i].tile, 0x10);

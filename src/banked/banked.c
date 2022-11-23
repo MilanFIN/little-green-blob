@@ -5,7 +5,7 @@
 #pragma bank 255
 
 
-const uint8_t SPLASHDOWNFRAMETIME = 6;
+const uint8_t SPLASHDOWNFRAMETIME = 3;
 const uint8_t SPLASHFRAMECOUNT = 8;
 
 uint8_t splashFrame = 0;
@@ -87,13 +87,21 @@ uint8_t checkFinish(uint16_t finishTileIndex, uint16_t mapWidth, uint16_t x, uin
 BANKREF(initSplashDownSprite)
 void initSplashDownSprite() BANKED
 {
-	const UWORD initSplashDownSprite[] = {
+
+	const UWORD playerPalette[] = {
+		32767,
+		992,
+		744,
+		5344
+	};
+
+	const UWORD splashPalette[] = {
 		32767,
 		21140,
 		10570,
 		5285
 	};
-	set_sprite_palette(5,1, &initSplashDownSprite[0]);
+	set_sprite_palette(5,1, &playerPalette[0]);
 
 	const unsigned char Splashdown[] =
 	{
@@ -132,26 +140,40 @@ void initSplashDownSprite() BANKED
 	};
 	set_sprite_data(0x20, 16, Splashdown);
 
+	//sprite 20 & 21 for splash damage
 	set_sprite_tile(20, 0x20);
+	set_sprite_tile(21, 0x20);
+
 	set_sprite_prop(20,5);  //(5th) palette
-	move_sprite(20, 100, 100);
+	set_sprite_prop(21,5 | S_FLIPX);  //(5th) palette & flipped
+	move_sprite(20, 200, 200);
+	move_sprite(21, 200, 200);
 
 
 }
 
 void spawnSplash(uint16_t x, uint16_t y) BANKED
 {
-	set_sprite_tile(20, 0x20 + (splashFrame<<1));
+
 	splashFrame = 0;
 	splashFrameCounter = 0;
 	splashActive = 1;
-	move_sprite(20, x+16, y);
+	set_sprite_tile(20, 0x20 + (splashFrame<<1));
+	set_sprite_tile(21, 0x20 + (splashFrame<<1));
+
+
+	//20: +8 for zero position going to right
+	//21 0 for zero position going to left
+	move_sprite(20, x+12, y);
+	move_sprite(21, x-4, y);
+
 }
 
 BANKREF(scrollSplash)
 void scrollSplash(int16_t xchange, int16_t ychange) BANKED
 {
 	scroll_sprite(20, (uint8_t)xchange, (uint8_t)ychange);
+	scroll_sprite(21, (uint8_t)xchange, (uint8_t)ychange);
 
 }
 
@@ -165,6 +187,8 @@ void loopSplash() BANKED
 
 
 	set_sprite_tile(20, 0x20 + (splashFrame<<1));
+	set_sprite_tile(21, 0x20 + (splashFrame<<1));
+
 	splashFrameCounter++;
 	if (splashFrameCounter > SPLASHDOWNFRAMETIME) {
 		splashFrameCounter = 0;
@@ -172,6 +196,7 @@ void loopSplash() BANKED
 		if (splashFrame >= SPLASHFRAMECOUNT) {
 			splashFrame = 0;
 			move_sprite(20, 200,200);
+			move_sprite(21, 200,200);
 			splashActive = 0;
 		}
 	}
