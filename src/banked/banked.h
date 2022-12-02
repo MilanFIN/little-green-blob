@@ -48,5 +48,11 @@ BANKREF_EXTERN(scrollSplash)
 void loopSplash() BANKED;
 BANKREF_EXTERN(loopSplash)
 
+void initFont() BANKED;
+BANKREF_EXTERN(initFont)
+
+void showStartMenu() BANKED;
+BANKREF_EXTERN(showStartMenu)
+
 
 #endif

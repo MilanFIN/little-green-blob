@@ -1,6 +1,8 @@
 #include <gbdk/platform.h>
 #include <gbdk/far_ptr.h>
 
+#include "map19.h"
+#include "map18.h"
 #include "map17.h"
 #include "map16.h"
 #include "map15.h"
@@ -87,6 +89,12 @@ uint8_t getMapBank(uint8_t  mapNumber) BANKED {
 		case 17:
 			mapBank = BANK(Map17PLN0);
 			break;
+		case 18:
+			mapBank = BANK(Map18PLN0);
+			break;
+		case 19:
+			mapBank = BANK(Map19PLN0);
+			break;
 		default:
 			mapBank = BANK(Map00PLN0);	
 	}
@@ -155,6 +163,12 @@ uint8_t getMapWidth(uint8_t  mapNumber) BANKED {
 			break;
 		case 17:
 			widthPtr = to_far_ptr(getMap17Width, BANK(getMap17Width));
+			break;
+		case 18:
+			widthPtr = to_far_ptr(getMap18Width, BANK(getMap18Width));
+			break;
+		case 19:
+			widthPtr = to_far_ptr(getMap19Width, BANK(getMap19Width));
 			break;
 		default:
 			widthPtr = to_far_ptr(getMap00Width, BANK(getMap00Width));			
@@ -225,6 +239,12 @@ uint8_t getMapHeight(uint8_t  mapNumber) BANKED {
 		case 17:
 			heightPtr = to_far_ptr(getMap17Height, BANK(getMap17Height));
 			break;
+		case 18:
+			heightPtr = to_far_ptr(getMap18Height, BANK(getMap18Height));
+			break;
+		case 19:
+			heightPtr = to_far_ptr(getMap19Height, BANK(getMap19Height));
+			break;
 		default:
 			heightPtr = to_far_ptr(getMap00Height, BANK(getMap00Height));
 	}
@@ -293,6 +313,12 @@ uint16_t getMapTiles(uint8_t mapNumber) BANKED {
 		case 17:
 			tilePtr = to_far_ptr(getMap17TilePlane, BANK(getMap17TilePlane));
 			break;
+		case 18:
+			tilePtr = to_far_ptr(getMap18TilePlane, BANK(getMap18TilePlane));
+			break;
+		case 19:
+			tilePtr = to_far_ptr(getMap19TilePlane, BANK(getMap19TilePlane));
+			break;
 		default:
 			tilePtr = to_far_ptr(getMap00TilePlane, BANK(getMap00TilePlane));			
 	}
@@ -359,6 +385,12 @@ uint16_t getMapPalette(uint8_t mapNumber) BANKED {
 			break;
 		case 17:
 			palettePtr = to_far_ptr(getMap17PalettePlane, BANK(getMap17PalettePlane));
+			break;
+		case 18:
+			palettePtr = to_far_ptr(getMap18PalettePlane, BANK(getMap18PalettePlane));
+			break;
+		case 19:
+			palettePtr = to_far_ptr(getMap19PalettePlane, BANK(getMap19PalettePlane));
 			break;
 		default:
 			palettePtr = to_far_ptr(getMap00PalettePlane, BANK(getMap00PalettePlane));			

@@ -56,8 +56,8 @@ unsigned char* mapPalette; //FAR_CALL(palettePtr,uint16_t (*)(void));
 uint8_t mapWidth; //FAR_CALL(widthPtr,uint8_t (*)(void));
 uint8_t mapHeight; //FAR_CALL(widthPtr,uint8_t (*)(void));
 
-uint8_t currentMap = 17;
-const uint8_t MAPCOUNT = 18;
+uint8_t currentMap = 19;
+const uint8_t MAPCOUNT = 20;
 
 
 
@@ -1001,6 +1001,7 @@ void main(){
 	SHOW_BKG;
 
 
+	showStartMenu();
 	
 	set_sprite_palette(0, 1, &playerPalette[0]); // loading 1 palette of 4 colors
 

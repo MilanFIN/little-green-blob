@@ -1,6 +1,8 @@
 #include <gbdk/platform.h>
 #include <gb/gb.h>
-
+#include <gbdk/font.h>
+#include <text.h>
+#include <font.h>
 
 #pragma bank 255
 
@@ -11,6 +13,8 @@ const uint8_t SPLASHFRAMECOUNT = 8;
 uint8_t splashFrame = 0;
 uint8_t splashFrameCounter = 0;
 uint8_t splashActive = 0;
+
+//font_t min_font;
 
 /*
 
@@ -200,4 +204,23 @@ void loopSplash() BANKED
 			splashActive = 0;
 		}
 	}
+}
+
+
+BANKREF(initFont)
+void initFont() BANKED
+{
+	set_bkg_palette(10, 8, &fontPalette[0]);
+	set_bkg_data(0x30, 37, FontTiles);
+
+}
+
+
+BANKREF(showStartMenu)
+void showStartMenu() BANKED
+{
+	initFont();
+	waitpad(J_START | J_A);
+	waitpadup();
+
 }
