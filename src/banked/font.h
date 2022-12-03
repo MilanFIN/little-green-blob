@@ -7,10 +7,10 @@
 #define _font_h
 
 const UWORD fontPalette[] = {
-	6076,
-	8935,
-	6596,
-	5344
+  32767,
+  8935,
+  6596,
+  0
 };
 
 

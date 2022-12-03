@@ -897,6 +897,8 @@ void initProjectiles() {
 void startLevel()  {
 
 	initSplashDownSprite();
+
+
 	//red/blue switch for switchblocks, 0 for red
 	switchState = 0;
 	//raises/lowers spike traps, 0 for down
@@ -974,6 +976,7 @@ void startLevel()  {
 	updateEntityPositions(1);
 	
 
+
 }
 
 
@@ -1002,11 +1005,14 @@ void main(){
 
 
 	showStartMenu();
-	
+
+
 	set_sprite_palette(0, 1, &playerPalette[0]); // loading 1 palette of 4 colors
+
 
 	SWITCH_ROM(BANK(playerTilesets));
 	set_sprite_data(0, 16, playerTilesets[0]);
+
 	SWITCH_ROM(_saved_bank);
 
 

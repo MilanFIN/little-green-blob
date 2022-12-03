@@ -210,8 +210,16 @@ void loopSplash() BANKED
 BANKREF(initFont)
 void initFont() BANKED
 {
-	set_bkg_palette(10, 8, &fontPalette[0]);
+	set_bkg_palette(0, 8, &fontPalette[0]);
 	set_bkg_data(0x30, 37, FontTiles);
+	
+	move_bkg(4,0);
+	VBK_REG=1;
+	set_bkg_tiles(5,8, 11, 1, PressStartTextPLN1);
+	VBK_REG=0;
+	set_bkg_tiles(5,8, 11, 1, PressStartTextPLN0);
+
+	wait_vbl_done();
 
 }
 
@@ -222,5 +230,6 @@ void showStartMenu() BANKED
 	initFont();
 	waitpad(J_START | J_A);
 	waitpadup();
+	wait_vbl_done();
 
 }
