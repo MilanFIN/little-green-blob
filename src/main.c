@@ -1007,31 +1007,32 @@ void main(){
 	showStartMenu();
 
 
-	set_sprite_palette(0, 1, &playerPalette[0]); // loading 1 palette of 4 colors
-
-
-	SWITCH_ROM(BANK(playerTilesets));
-	set_sprite_data(0, 16, playerTilesets[0]);
-
-	SWITCH_ROM(_saved_bank);
-
-
-
-	set_sprite_data(16, 2, Projectile);
-	set_sprite_palette(1, 1, &projectilePalette[0]);
-
-
-	set_sprite_tile(0, 0);
-	set_sprite_tile(1, 2);
-
-	set_sprite_prop(0,0); //loading 0th palette
-	set_sprite_prop(1,0); //also 0th
-
-
 
 
 
 	while(1) {
+		currentMap = levelSelectionMenu(MAPCOUNT);
+
+		set_sprite_palette(0, 1, &playerPalette[0]); // loading 1 palette of 4 colors
+
+
+		SWITCH_ROM(BANK(playerTilesets));
+		set_sprite_data(0, 16, playerTilesets[0]);
+
+		SWITCH_ROM(_saved_bank);
+
+
+
+		set_sprite_data(16, 2, Projectile);
+		set_sprite_palette(1, 1, &projectilePalette[0]);
+
+
+		set_sprite_tile(0, 0);
+		set_sprite_tile(1, 2);
+
+		set_sprite_prop(0,0); //loading 0th palette
+		set_sprite_prop(1,0); //also 0th
+
 
 
 		//initMapPointers(currentMap);
@@ -1067,14 +1068,16 @@ void main(){
 				fire();
 			}
 			
-			if (joydata & J_SELECT && !(previousJoydata & J_SELECT)) {
+			if (!(joydata & J_SELECT) && (previousJoydata & J_SELECT)) {
 				startLevel();
 			}
 			if ((joydata & J_A && joydata & J_DOWN) && !(previousJoydata & J_A && previousJoydata & J_DOWN)) {
 				dropDownFrames = DROPDOWNDURATION;
 			}
 
-
+			if (!(joydata & J_START) && (previousJoydata & J_START)) {
+				break;
+			}
 			checkProjectileCollisions();
 			updateTraps();
 			loopSplash();
@@ -1087,9 +1090,9 @@ void main(){
 			if (checkFinish(finishTileIndex, mapWidth, playerX, playerY)) {
 				currentMap++;
 				if (currentMap >= MAPCOUNT) {
-					currentMap = 0;
+					break;
 				}
-				break;
+				startLevel();
 			}
 
 			
@@ -1097,7 +1100,7 @@ void main(){
 				set_sprite_palette(0, 1, &playerPalette[0]); 
 				playDeathAnimation(onScreenX, onScreenY);
 
-				break;
+				startLevel();
 			}
 			
 

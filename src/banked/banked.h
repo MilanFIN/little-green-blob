@@ -54,5 +54,8 @@ BANKREF_EXTERN(initFont)
 void showStartMenu() BANKED;
 BANKREF_EXTERN(showStartMenu)
 
+uint8_t levelSelectionMenu(uint8_t mapcount) BANKED;
+BANKREF_EXTERN(levelSelectionMenu)
+
 
 #endif

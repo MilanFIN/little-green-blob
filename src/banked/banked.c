@@ -210,8 +210,23 @@ void loopSplash() BANKED
 BANKREF(initFont)
 void initFont() BANKED
 {
-	set_bkg_palette(0, 8, &fontPalette[0]);
+	set_bkg_palette(0, 1, &fontPalette[0]);
+
+	
 	set_bkg_data(0x30, 37, FontTiles);
+	
+
+	wait_vbl_done();
+
+}
+
+
+
+
+BANKREF(showStartMenu)
+void showStartMenu() BANKED
+{
+	initFont();
 	
 	move_bkg(4,0);
 	VBK_REG=1;
@@ -219,17 +234,86 @@ void initFont() BANKED
 	VBK_REG=0;
 	set_bkg_tiles(5,8, 11, 1, PressStartTextPLN0);
 
-	wait_vbl_done();
-
-}
-
-
-BANKREF(showStartMenu)
-void showStartMenu() BANKED
-{
-	initFont();
 	waitpad(J_START | J_A);
 	waitpadup();
 	wait_vbl_done();
 
 }
+
+void clearScreen() 
+{
+	for (uint8_t i=0; i < 32; ++i) {
+		VBK_REG=1;
+		set_bkg_tiles(0,i,20,1,emptyRow);
+		VBK_REG=0;
+		set_bkg_tiles(0,i,20,1,emptyRow);
+
+	}
+	for (uint8_t j=0; j<30; ++j) {
+		move_sprite(j, 200, 200);
+	}
+
+}
+
+BANKREF(levelSelectionMenu)
+uint8_t levelSelectionMenu(uint8_t mapcount) BANKED
+{
+	initFont();
+	clearScreen();
+
+	move_bkg(0,0);
+	uint8_t joydata = 0;
+
+
+	uint8_t map = 0;
+
+	while (1) {
+		for (int8_t i = -2; i < 3; i++) {
+			int8_t optionIndex = i+map+1;
+			int8_t position = i+2;
+			if (optionIndex >= 1 && optionIndex <= mapcount) {
+				uint8_t firstTile = optionIndex / 10;
+				VBK_REG=1;
+				set_bkg_tiles(3+3*position, 8, 1, 1, levelsPLN1);
+				VBK_REG=0;
+				set_bkg_tiles(3+3*position, 8, 1, 1, levelsPLN0+firstTile);
+				uint8_t secondTile = optionIndex % 10;
+				VBK_REG=1;
+				set_bkg_tiles(3+3*position+1, 8, 1, 1, levelsPLN1);
+				VBK_REG=0;
+				set_bkg_tiles(3+3*position+1, 8, 1, 1, levelsPLN0+secondTile);
+			}
+			else {
+				//clear this, as it should have no value
+				VBK_REG=1;
+				set_bkg_tiles(3+3*position, 8, 1, 1, levelsPLN1);
+				VBK_REG=0;
+				set_bkg_tiles(3+3*position, 8, 1, 1, levelsPLN0+10);
+				VBK_REG=1;
+				set_bkg_tiles(3+3*position+1, 8, 1, 1, levelsPLN1);
+				VBK_REG=0;
+				set_bkg_tiles(3+3*position+1, 8, 1, 1, levelsPLN0+10);
+
+			}
+		}
+		waitpad(J_RIGHT | J_LEFT | J_A | J_START);
+		joydata = joypad();
+
+		waitpadup();
+		if (joydata & J_RIGHT) {
+			if (map < mapcount - 1) {
+				map++;
+			}
+		}
+		if (joydata & J_LEFT) {
+			if (map >  1) {
+				map--;
+			}
+		}
+		if (joydata & J_A || joydata & J_START) {
+			break;
+		}
+	}
+
+	return map;
+} 
