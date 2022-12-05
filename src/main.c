@@ -896,6 +896,15 @@ void initProjectiles() {
 
 void startLevel()  {
 
+	mapBank = getMapBank(currentMap);
+	mapWidth = getMapWidth(currentMap);
+	mapHeight = getMapHeight(currentMap);
+
+	mapTiles = getMapTiles(currentMap);
+	mapPalette = getMapPalette(currentMap);
+
+
+
 	initSplashDownSprite();
 
 
@@ -1034,14 +1043,6 @@ void main(){
 		set_sprite_prop(1,0); //also 0th
 
 
-
-		//initMapPointers(currentMap);
-		mapBank = getMapBank(currentMap);
-		mapWidth = getMapWidth(currentMap);
-		mapHeight = getMapHeight(currentMap);
-
-		mapTiles = getMapTiles(currentMap);
-		mapPalette = getMapPalette(currentMap);
 
 		
 		startLevel();

@@ -210,7 +210,7 @@ void loopSplash() BANKED
 BANKREF(initFont)
 void initFont() BANKED
 {
-	set_bkg_palette(0, 1, &fontPalette[0]);
+	set_bkg_palette(0, 3, &fontPalette[0]);
 
 	
 	set_bkg_data(0x30, 37, FontTiles);
@@ -244,9 +244,9 @@ void clearScreen()
 {
 	for (uint8_t i=0; i < 32; ++i) {
 		VBK_REG=1;
-		set_bkg_tiles(0,i,20,1,emptyRow);
+		set_bkg_tiles(0,i,32,1,emptyRowPLN1);
 		VBK_REG=0;
-		set_bkg_tiles(0,i,20,1,emptyRow);
+		set_bkg_tiles(0,i,32,1,emptyRowPLN0);
 
 	}
 	for (uint8_t j=0; j<30; ++j) {
@@ -272,27 +272,30 @@ uint8_t levelSelectionMenu(uint8_t mapcount) BANKED
 			int8_t optionIndex = i+map+1;
 			int8_t position = i+2;
 			if (optionIndex >= 1 && optionIndex <= mapcount) {
+
+				int8_t numberPaletteOffset = (i >= 0 ? i : -i);
+
 				uint8_t firstTile = optionIndex / 10;
 				VBK_REG=1;
-				set_bkg_tiles(3+3*position, 8, 1, 1, levelsPLN1);
+				set_bkg_tiles(3+3*position, 8, 1, 1, levelsPLN1+numberPaletteOffset);
 				VBK_REG=0;
 				set_bkg_tiles(3+3*position, 8, 1, 1, levelsPLN0+firstTile);
 				uint8_t secondTile = optionIndex % 10;
 				VBK_REG=1;
-				set_bkg_tiles(3+3*position+1, 8, 1, 1, levelsPLN1);
+				set_bkg_tiles(3+3*position+1, 8, 1, 1, levelsPLN1+numberPaletteOffset);
 				VBK_REG=0;
 				set_bkg_tiles(3+3*position+1, 8, 1, 1, levelsPLN0+secondTile);
 			}
 			else {
 				//clear this, as it should have no value
 				VBK_REG=1;
-				set_bkg_tiles(3+3*position, 8, 1, 1, levelsPLN1);
+				set_bkg_tiles(3+3*position, 8, 1, 1, emptyRowPLN1);
 				VBK_REG=0;
-				set_bkg_tiles(3+3*position, 8, 1, 1, levelsPLN0+10);
+				set_bkg_tiles(3+3*position, 8, 1, 1, emptyRowPLN0);
 				VBK_REG=1;
-				set_bkg_tiles(3+3*position+1, 8, 1, 1, levelsPLN1);
+				set_bkg_tiles(3+3*position+1, 8, 1, 1, emptyRowPLN1);
 				VBK_REG=0;
-				set_bkg_tiles(3+3*position+1, 8, 1, 1, levelsPLN0+10);
+				set_bkg_tiles(3+3*position+1, 8, 1, 1, emptyRowPLN0);
 
 			}
 		}
@@ -306,14 +309,17 @@ uint8_t levelSelectionMenu(uint8_t mapcount) BANKED
 			}
 		}
 		if (joydata & J_LEFT) {
-			if (map >  1) {
+			if (map >  0) {
 				map--;
 			}
 		}
 		if (joydata & J_A || joydata & J_START) {
 			break;
 		}
+		wait_vbl_done();
 	}
 
+	clearScreen();
+	wait_vbl_done();
 	return map;
 } 
