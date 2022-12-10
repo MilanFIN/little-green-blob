@@ -35,11 +35,23 @@ uint8_t checkFinish(uint16_t finishTileIndex, uint16_t mapWidth, uint16_t x, uin
 BANKREF_EXTERN(checkFinish)
 
 
+void initBleedSprite() BANKED;
+BANKREF_EXTERN(initBleedSprite)
+
+void spawnBleed(uint16_t x, uint16_t y, int8_t direction) BANKED;
+BANKREF_EXTERN(spawnBleed)
+
+void scrollBleed(int16_t xchange, int16_t ychange) BANKED;
+BANKREF_EXTERN(scrollBleed)
+
+void loopBleed() BANKED;
+BANKREF_EXTERN(loopBleed)
+
 void initSplashDownSprite() BANKED;
 BANKREF_EXTERN(initSplashDownSprite)
 
 
-void spawnSplash(uint16_t x, uint16_t y) BANKED;
+void spawnSplash(uint16_t x, uint16_t y, uint16_t sideEdge) BANKED;
 BANKREF_EXTERN(spawnSplash)
 
 void scrollSplash(int16_t xchange, int16_t ychange) BANKED;
@@ -54,8 +66,10 @@ BANKREF_EXTERN(initFont)
 void showStartMenu() BANKED;
 BANKREF_EXTERN(showStartMenu)
 
-uint8_t levelSelectionMenu(uint8_t mapcount) BANKED;
+uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED;
 BANKREF_EXTERN(levelSelectionMenu)
 
+uint8_t mapCompleted(uint8_t map) BANKED;
+BANKREF_EXTERN(mapCompleted)
 
 #endif

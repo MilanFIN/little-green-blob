@@ -56,7 +56,7 @@ unsigned char* mapPalette; //FAR_CALL(palettePtr,uint16_t (*)(void));
 uint8_t mapWidth; //FAR_CALL(widthPtr,uint8_t (*)(void));
 uint8_t mapHeight; //FAR_CALL(widthPtr,uint8_t (*)(void));
 
-uint8_t currentMap = 19;
+uint8_t currentMap = 0;
 const uint8_t MAPCOUNT = 20;
 
 
@@ -563,7 +563,7 @@ void moveVertical() {
 				playerHurt = 1;
 				playerHurtPaletteTime = uClamp(ySpeed >> 4, 1, 10);
 				hp -= ySpeed >> FALLDAMAGESCALE;
-				spawnSplash(onScreenX, onScreenY);
+				spawnSplash(onScreenX, onScreenY, sideEdge);
 			}
 			jumping = 0;
 			ySpeed = 0;
@@ -626,6 +626,8 @@ void moveVertical() {
 		SWITCH_ROM(BANK(playerTilesets));
 		set_sprite_data(0, 16, playerTilesets[currentTile]);
 		SWITCH_ROM(_saved_bank);
+
+		spawnBleed(onScreenX, onScreenY, xDir);
 
 		previousTile = currentTile;
 	}
@@ -798,7 +800,7 @@ void updateProjectilePositions() {
 			uint16_t projectileScreenY = projectiles[i].y - yDiff;
 			//position probably overflows at values > 256
 			if (projectileScreenX > 0 && projectileScreenX < 200 && projectileScreenY > 0 && projectileScreenY < 200) {
-				move_sprite(projectiles[i].tile, projectileScreenX+4, projectileScreenY);
+				move_sprite(projectiles[i].tile, projectileScreenX+4, projectileScreenY+4);
 			}
 			else {
 				move_sprite(projectiles[i].tile, 220, 220);
@@ -814,7 +816,6 @@ void shufflePlayer(uint16_t x, uint16_t y) {
 	_saved_bank = _current_bank;
 	SWITCH_ROM(mapBank);
 
-	DISPLAY_OFF;
 
 	playerX = 0;
 	playerY = 0;
@@ -867,7 +868,6 @@ void shufflePlayer(uint16_t x, uint16_t y) {
 	playerX = x;
 	playerY = y;
 		
-	DISPLAY_ON;
 	
 	SWITCH_ROM(_saved_bank);
 
@@ -896,6 +896,10 @@ void initProjectiles() {
 
 void startLevel()  {
 
+	HIDE_BKG;
+	HIDE_SPRITES;
+	DISPLAY_OFF;
+
 	mapBank = getMapBank(currentMap);
 	mapWidth = getMapWidth(currentMap);
 	mapHeight = getMapHeight(currentMap);
@@ -906,6 +910,7 @@ void startLevel()  {
 
 
 	initSplashDownSprite();
+	initBleedSprite();
 
 
 	//red/blue switch for switchblocks, 0 for red
@@ -984,6 +989,9 @@ void startLevel()  {
 
 	updateEntityPositions(1);
 	
+	SHOW_BKG;
+	SHOW_SPRITES;
+	DISPLAY_ON;
 
 
 }
@@ -1020,7 +1028,7 @@ void main(){
 
 
 	while(1) {
-		currentMap = levelSelectionMenu(MAPCOUNT);
+		currentMap = levelSelectionMenu(MAPCOUNT, currentMap);
 
 		set_sprite_palette(0, 1, &playerPalette[0]); // loading 1 palette of 4 colors
 
@@ -1082,6 +1090,8 @@ void main(){
 			checkProjectileCollisions();
 			updateTraps();
 			loopSplash();
+			loopBleed();
+			scrollBleed(onScreenX, onScreenY);
 
 			framesSinceLastFire++;
 			timeTrapCounter--;
@@ -1089,8 +1099,10 @@ void main(){
 
 
 			if (checkFinish(finishTileIndex, mapWidth, playerX, playerY)) {
+				mapCompleted(currentMap);
 				currentMap++;
 				if (currentMap >= MAPCOUNT) {
+					currentMap = 0;
 					break;
 				}
 				startLevel();
