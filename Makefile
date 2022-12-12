@@ -13,11 +13,11 @@ TARGETS=gb #pocket megaduck sms gg
 #-Wl-yp0x143=0x80
 # Configure platform specific LCC flags here:
 LCCFLAGS_gb      = -Wl-yt0x1B  -Wm-yn"splat" -Wm-yc # Set an MBC for banking (1B-ROM+MBC5+RAM+BATT) 
-LCCFLAGS_pocket  = -Wl-yt0x1B # Usually the same as required for .gb
-LCCFLAGS_duck    = -Wl-yt0x1B # Usually the same as required for .gb
-LCCFLAGS_gbc     = -Wl-yt0x1B -Wm-yc # Same as .gb with: -Wm-yc (gb & gbc) or Wm-yC (gbc exclusive)
-LCCFLAGS_sms     =
-LCCFLAGS_gg      =
+#LCCFLAGS_pocket  = -Wl-yt0x1B # Usually the same as required for .gb
+#LCCFLAGS_duck    = -Wl-yt0x1B # Usually the same as required for .gb
+#LCCFLAGS_gbc     = -Wl-yt0x1B -Wm-yc # Same as .gb with: -Wm-yc (gb & gbc) or Wm-yC (gbc exclusive)
+#LCCFLAGS_sms     =
+#LCCFLAGS_gg      =
 
 LCCFLAGS += $(LCCFLAGS_$(EXT)) # This adds the current platform specific LCC Flags
 
