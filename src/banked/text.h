@@ -68,6 +68,14 @@ const unsigned char levelsPLN1[] = {
   0x00, 0x01, 0x02
 };
 
+const unsigned char ptsPLN0[] = {
+  0x3f, 0x43, 0x42 
+};
+
+const unsigned char ptsPLN1[] = {
+  0x02, 0x02, 0x02 
+};
+
 
 //20 wide
 const unsigned char emptyRowPLN0[] = {

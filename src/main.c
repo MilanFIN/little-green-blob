@@ -1099,7 +1099,7 @@ void main(){
 
 
 			if (checkFinish(finishTileIndex, mapWidth, playerX, playerY)) {
-				mapCompleted(currentMap);
+				mapCompleted(currentMap, hp);
 				currentMap++;
 				if (currentMap >= MAPCOUNT) {
 					currentMap = 0;

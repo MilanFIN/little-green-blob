@@ -69,7 +69,7 @@ BANKREF_EXTERN(showStartMenu)
 uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED;
 BANKREF_EXTERN(levelSelectionMenu)
 
-uint8_t mapCompleted(uint8_t map) BANKED;
+uint8_t mapCompleted(uint8_t map, int16_t score) BANKED;
 BANKREF_EXTERN(mapCompleted)
 
 #endif

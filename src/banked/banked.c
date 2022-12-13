@@ -24,9 +24,12 @@ uint8_t bleedActive = 0;
 int8_t bleedDir = 0;
 
 
-char *saveInitialized = (char *)0xa000; 
-int *savePointer = (int *)0xa002;
+char *saveInitialized = (char *)0xa000; //1 byte * 2
+uint8_t *saveCompletePointer = (int *)0xa002; //1 bytes * 20
+int16_t *saveScoresPointer = (int *)0xa016; //4 bytes * 20
+
 uint8_t mapCompletedSaveValues[20];
+int16_t mapScoreSaveValues[20];
 
 
 
@@ -378,23 +381,26 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 	if (saveInitialized[0] != 'o' || saveInitialized[1] != 'k') {
 
 		for (uint8_t i = 0; i < 20; i++) {
-			savePointer[i] = 0;
+			saveCompletePointer[i] = 0;
 		}
-
-
+		for (uint8_t i = 0; i < 20; i++) {
+			saveScoresPointer[i] = 0;
+		}
+		
 		saveInitialized[0] = 'o';
 		saveInitialized[1] = 'k';
-
 
 	} 
 
 	for (uint8_t i = 0; i < 20; i++) {
-		if (savePointer[i] == 1) {
+		if (saveCompletePointer[i] == 1) {
 			mapCompletedSaveValues[i] = 1;
 		}
 		else {
 			mapCompletedSaveValues[i] = 0;
 		}
+		mapScoreSaveValues[i] = saveScoresPointer[i];
+		
 	}
 
 	DISABLE_RAM_MBC1; // Disable RAM
@@ -422,42 +428,74 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 		for (int8_t i = -2; i < 3; i++) {
 			int8_t optionIndex = i+map+1;
 			int8_t position = i+2;
+
+			if (i == 0) { //middle item, the one to be chosen
+				if (mapCompletedSaveValues[optionIndex-1] == 1) {
+					uint8_t scoreFirstDigit = (mapScoreSaveValues[optionIndex-1] /100)% 10;
+					uint8_t scoreSecondDigit = (mapScoreSaveValues[optionIndex-1] / 10) % 10;
+					uint8_t scoreThirdDigit = mapScoreSaveValues[optionIndex-1] % 10;
+
+					//set points
+					VBK_REG=1;
+					set_bkg_tiles(7, 7, 1, 1, levelsPLN1+2);
+					set_bkg_tiles(8, 7, 1, 1, levelsPLN1+2);
+					set_bkg_tiles(9, 7, 1, 1, levelsPLN1+2);
+					VBK_REG=0;
+					set_bkg_tiles(7, 7, 1, 1, levelsPLN0+scoreFirstDigit);
+					set_bkg_tiles(8, 7, 1, 1, levelsPLN0+scoreSecondDigit);
+					set_bkg_tiles(9, 7, 1, 1, levelsPLN0+scoreThirdDigit);
+
+					VBK_REG=1;
+					set_bkg_tiles(10, 7, 3, 1, ptsPLN1);
+					VBK_REG=0;
+					set_bkg_tiles(10, 7, 3, 1, ptsPLN0);
+				}
+				else {
+					VBK_REG=1;
+					set_bkg_tiles(0, 7, 32, 1, emptyRowPLN1);
+					VBK_REG=0;
+					set_bkg_tiles(0, 7, 32, 1, emptyRowPLN0);
+				}
+			}
+
+
+			//set options & completed mark if necessary
 			if (optionIndex >= 1 && optionIndex <= mapcount) {
 
 				int8_t numberPaletteOffset = (i >= 0 ? i : -i);
 
 				uint8_t firstTile = optionIndex / 10;
 				VBK_REG=1;
-				set_bkg_tiles(3+3*position, 8, 1, 1, levelsPLN1+numberPaletteOffset);
+				set_bkg_tiles(3+3*position, 9, 1, 1, levelsPLN1+numberPaletteOffset);
 				VBK_REG=0;
-				set_bkg_tiles(3+3*position, 8, 1, 1, levelsPLN0+firstTile);
+				set_bkg_tiles(3+3*position, 9, 1, 1, levelsPLN0+firstTile);
 				uint8_t secondTile = optionIndex % 10;
 				VBK_REG=1;
-				set_bkg_tiles(3+3*position+1, 8, 1, 1, levelsPLN1+numberPaletteOffset);
+				set_bkg_tiles(3+3*position+1, 9, 1, 1, levelsPLN1+numberPaletteOffset);
 				VBK_REG=0;
-				set_bkg_tiles(3+3*position+1, 8, 1, 1, levelsPLN0+secondTile);
+				set_bkg_tiles(3+3*position+1, 9, 1, 1, levelsPLN0+secondTile);
 
 				VBK_REG=1;
-				set_bkg_tiles(3+3*position+2, 8, 1, 1, LevelCompletedCheckMarkPLN1+numberPaletteOffset);
+				set_bkg_tiles(3+3*position+2, 9, 1, 1, LevelCompletedCheckMarkPLN1+numberPaletteOffset);
 				VBK_REG=0;
-				set_bkg_tiles(3+3*position+2, 8, 1, 1, LevelCompletedCheckMarkPLN0 + mapCompletedSaveValues[optionIndex-1]);
+				set_bkg_tiles(3+3*position+2, 9, 1, 1, LevelCompletedCheckMarkPLN0 + mapCompletedSaveValues[optionIndex-1]);
 
 
 			}
 			else {
 				//clear this, as it should have no value
 				VBK_REG=1;
-				set_bkg_tiles(3+3*position, 8, 1, 1, emptyRowPLN1);
+				set_bkg_tiles(3+3*position, 9, 1, 1, emptyRowPLN1);
 				VBK_REG=0;
-				set_bkg_tiles(3+3*position, 8, 1, 1, emptyRowPLN0);
+				set_bkg_tiles(3+3*position, 9, 1, 1, emptyRowPLN0);
 				VBK_REG=1;
-				set_bkg_tiles(3+3*position+1, 8, 1, 1, emptyRowPLN1);
+				set_bkg_tiles(3+3*position+1, 9, 1, 1, emptyRowPLN1);
 				VBK_REG=0;
-				set_bkg_tiles(3+3*position+1, 8, 1, 1, emptyRowPLN0);
+				set_bkg_tiles(3+3*position+1, 9, 1, 1, emptyRowPLN0);
 				VBK_REG=1;
-				set_bkg_tiles(3+3*position+2, 8, 1, 1, emptyRowPLN1);
+				set_bkg_tiles(3+3*position+2, 9, 1, 1, emptyRowPLN1);
 				VBK_REG=0;
-				set_bkg_tiles(3+3*position+2, 8, 1, 1, emptyRowPLN0);
+				set_bkg_tiles(3+3*position+2, 9, 1, 1, emptyRowPLN0);
 
 			}
 		}
@@ -488,15 +526,22 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 
 
 BANKREF(mapCompleted)
-uint8_t mapCompleted(uint8_t map) BANKED
+uint8_t mapCompleted(uint8_t map, int16_t score) BANKED
 {
+	//TODO: SHOW SAVING SCREEN HERE
+	ENABLE_RAM_MBC1; 
+
 	if (mapCompletedSaveValues[map] != 1) {
-		//TODO: SHOW SAVING SCREEN HERE
-		ENABLE_RAM_MBC1; 
-
-		savePointer[map] = 1;
-		mapCompletedSaveValues[map] = 1;
-
-		DISABLE_RAM_MBC1;
+		saveCompletePointer[map] = 1;			
 	}
+	if (saveScoresPointer[map] < score) {
+		saveScoresPointer[map] = score;
+
+	}
+
+	DISABLE_RAM_MBC1;
+	mapCompletedSaveValues[map] = 1;
+	mapScoreSaveValues[map] = score;
+
+
 }
