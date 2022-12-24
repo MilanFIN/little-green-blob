@@ -3,6 +3,7 @@
 #include <gbdk/font.h>
 #include <text.h>
 #include <font.h>
+#include <splashlogo.h>
 
 #pragma bank 255
 
@@ -61,18 +62,35 @@ int16_t i16abs(int16_t value) BANKED
 
 
 BANKREF(playDeathAnimation)
-void playDeathAnimation(uint16_t x, uint16_t y) BANKED 
+void playDeathAnimation(uint16_t x, uint16_t y, int8_t xDir) BANKED 
 {
-	set_sprite_tile(0,  (0));
-	set_sprite_tile(1,  2);
+	set_sprite_tile(0, 0);
+	set_sprite_tile(1, 2);
+
+	if (xDir >= 0) {
+		set_sprite_prop(0,0); 
+		set_sprite_prop(1,0); 
+	}
+	else {
+		set_sprite_prop(0,S_FLIPX); 
+		set_sprite_prop(1,S_FLIPX); 
+	}
 
 	for(uint8_t i = 0; i < 5;i++) {
 		move_sprite(0, 200, 200);
 		move_sprite(1, 200, 200);
 		wait_vbl_done();
 		delay(100);
-		move_sprite(0, x, y);
-		move_sprite(1, x+8, y);
+
+		if (xDir >= 0) {
+			move_sprite(0, x, y);
+			move_sprite(1, x + 8, y);
+		}
+		else {
+			move_sprite(0, x+8, y);
+			move_sprite(1, x, y);
+		}
+
 		wait_vbl_done();
 		delay(100);
 	}
@@ -339,15 +357,44 @@ void showStartMenu() BANKED
 {
 	initFont();
 	clearScreen();
-	move_bkg(4,0);
+
+	move_win(4, 104);
 	VBK_REG=1;
-	set_bkg_tiles(5,8, 11, 1, PressStartTextPLN1);
+	set_win_tiles(5, 0, 11, 1, PressStartTextPLN1);
 	VBK_REG=0;
-	set_bkg_tiles(5,8, 11, 1, PressStartTextPLN0);
+	set_win_tiles(5, 0, 11, 1, PressStartTextPLN0);
+
+
+	const UWORD splashBkgPalette[] = {
+		32767, 6117, 744, 0//5344
+	};
+
+	set_bkg_palette(7, 1, &splashBkgPalette[0]);
+
+	uint8_t splashPLN1[128];
+	for (uint8_t j = 0; j < 128; ++j) {
+		splashPLN1[j] = 0x07;
+	}
+	VBK_REG=1;
+	set_bkg_tiles(3,2, 16, 8, splashPLN1);
+
+
+	VBK_REG=0;
+	move_bkg(8,0);
+	unsigned char offset_splash_map[128];
+	for (uint8_t i = 0; i < 128; ++i) {
+		offset_splash_map[i] = splash_map[i] + 0x60;
+	}
+	set_bkg_data(0x60, 64, splash_data); //0x25
+	set_bkg_tiles(3,2, 16, 8, offset_splash_map);
+
+
+	SHOW_WIN;
 
 	waitpad(J_START | J_A);
 	waitpadup();
 	wait_vbl_done();
+	HIDE_WIN;
 
 }
 
@@ -356,8 +403,10 @@ void clearScreen()
 	for (uint8_t i=0; i < 32; ++i) {
 		VBK_REG=1;
 		set_bkg_tiles(0,i,32,1,emptyRowPLN1);
+		set_win_tiles(0,i,32,1,emptyRowPLN1);
 		VBK_REG=0;
 		set_bkg_tiles(0,i,32,1,emptyRowPLN0);
+		set_win_tiles(0,i,32,1,emptyRowPLN0);
 
 	}
 	for (uint8_t j=0; j<30; ++j) {
@@ -526,7 +575,7 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 
 
 BANKREF(mapCompleted)
-uint8_t mapCompleted(uint8_t map, int16_t score) BANKED
+void mapCompleted(uint8_t map, int16_t score) BANKED
 {
 	//TODO: SHOW SAVING SCREEN HERE
 	ENABLE_RAM_MBC1; 

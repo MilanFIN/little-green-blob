@@ -28,6 +28,77 @@
 /* Bank of tiles. */
 #define PlayerTiles4Bank 0
 
+/* Super Gameboy palette 0 */
+#define PlayerTiles4SGBPal0c0 6076
+#define PlayerTiles4SGBPal0c1 8935
+#define PlayerTiles4SGBPal0c2 6596
+#define PlayerTiles4SGBPal0c3 5344
+
+/* Super Gameboy palette 1 */
+#define PlayerTiles4SGBPal1c0 6076
+#define PlayerTiles4SGBPal1c1 8935
+#define PlayerTiles4SGBPal1c2 6596
+#define PlayerTiles4SGBPal1c3 5344
+
+/* Super Gameboy palette 2 */
+#define PlayerTiles4SGBPal2c0 6076
+#define PlayerTiles4SGBPal2c1 8935
+#define PlayerTiles4SGBPal2c2 6596
+#define PlayerTiles4SGBPal2c3 5344
+
+/* Super Gameboy palette 3 */
+#define PlayerTiles4SGBPal3c0 6076
+#define PlayerTiles4SGBPal3c1 8935
+#define PlayerTiles4SGBPal3c2 6596
+#define PlayerTiles4SGBPal3c3 5344
+
+/* Gameboy Color palette 0 */
+#define PlayerTiles4CGBPal0c0 32767
+#define PlayerTiles4CGBPal0c1 992
+#define PlayerTiles4CGBPal0c2 744
+#define PlayerTiles4CGBPal0c3 5344
+
+/* Gameboy Color palette 1 */
+#define PlayerTiles4CGBPal1c0 6076
+#define PlayerTiles4CGBPal1c1 8935
+#define PlayerTiles4CGBPal1c2 6596
+#define PlayerTiles4CGBPal1c3 5344
+
+/* Gameboy Color palette 2 */
+#define PlayerTiles4CGBPal2c0 6076
+#define PlayerTiles4CGBPal2c1 8935
+#define PlayerTiles4CGBPal2c2 6596
+#define PlayerTiles4CGBPal2c3 5344
+
+/* Gameboy Color palette 3 */
+#define PlayerTiles4CGBPal3c0 6076
+#define PlayerTiles4CGBPal3c1 8935
+#define PlayerTiles4CGBPal3c2 6596
+#define PlayerTiles4CGBPal3c3 5344
+
+/* Gameboy Color palette 4 */
+#define PlayerTiles4CGBPal4c0 6076
+#define PlayerTiles4CGBPal4c1 8935
+#define PlayerTiles4CGBPal4c2 6596
+#define PlayerTiles4CGBPal4c3 5344
+
+/* Gameboy Color palette 5 */
+#define PlayerTiles4CGBPal5c0 6076
+#define PlayerTiles4CGBPal5c1 8935
+#define PlayerTiles4CGBPal5c2 6596
+#define PlayerTiles4CGBPal5c3 5344
+
+/* Gameboy Color palette 6 */
+#define PlayerTiles4CGBPal6c0 6076
+#define PlayerTiles4CGBPal6c1 8935
+#define PlayerTiles4CGBPal6c2 6596
+#define PlayerTiles4CGBPal6c3 5344
+
+/* Gameboy Color palette 7 */
+#define PlayerTiles4CGBPal7c0 6076
+#define PlayerTiles4CGBPal7c1 8935
+#define PlayerTiles4CGBPal7c2 6596
+#define PlayerTiles4CGBPal7c3 5344
 /* CGBpalette entries. */
 extern const unsigned char PlayerTiles4CGB[];
 /* Start of tile array. */

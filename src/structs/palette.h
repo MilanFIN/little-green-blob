@@ -1,6 +1,6 @@
 
 #define PlayerTiles0CGBPal0c0 32767
-#define PlayerTiles0CGBPal0c1 992
+#define PlayerTiles0CGBPal0c1 6117
 #define PlayerTiles0CGBPal0c2 744
 #define PlayerTiles0CGBPal0c3 5344
 

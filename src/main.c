@@ -724,8 +724,20 @@ void updateEntityPositions(uint8_t force) {
 	//player positions
 	onScreenX = playerX - xDiff;
 	onScreenY = playerY - yDiff;
-	move_sprite(0, onScreenX, onScreenY);
-	move_sprite(1, onScreenX + 8, onScreenY);
+	if (xDir >= 0) {
+		set_sprite_prop(0,0); 
+		set_sprite_prop(1,0); 
+
+		move_sprite(0, onScreenX, onScreenY);
+		move_sprite(1, onScreenX + 8, onScreenY);
+	}
+	else {
+		set_sprite_prop(0,S_FLIPX); 
+		set_sprite_prop(1,S_FLIPX); 
+		move_sprite(0, onScreenX+8, onScreenY);
+		move_sprite(1, onScreenX, onScreenY);
+
+	}
 
 
 
@@ -1111,7 +1123,7 @@ void main(){
 			
 			if (hp <= 0) {
 				set_sprite_palette(0, 1, &playerPalette[0]); 
-				playDeathAnimation(onScreenX, onScreenY);
+				playDeathAnimation(onScreenX, onScreenY, xDir);
 
 				startLevel();
 			}
