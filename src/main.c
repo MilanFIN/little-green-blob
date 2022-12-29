@@ -179,12 +179,16 @@ const uint8_t FALLDAMAGESCALE = 1;
 uint16_t hatHeight;
 uint16_t sideEdge;
 
-
+uint8_t hasTraps = 0;
 
 
 
 void updateTraps() {
 	if (timeTrapCounter == 0) {
+		if (hasTraps) {
+			playSound(7);
+
+		}
 		if (timeTrapState) {
 			timeTrapState = 0;
 			VBK_REG=0;
@@ -207,6 +211,7 @@ void updateTraps() {
 
 void switchBlocks() {
 
+	playSound(6);
 	if (switchState) {
 		switchState = 0;
 		VBK_REG=0;
@@ -268,7 +273,7 @@ void fire() {
 		return;
 	}
 
-
+	playSound(4);
 	hp -= 10;
 	framesSinceLastFire = 0;
 
@@ -559,6 +564,7 @@ void moveVertical() {
 		if (onGround) {
 			if (ySpeed != 0) {
 				//when hitting ground, player might be a couple pixels off the ground
+				playSound(5);
 				putPlayerOnGround(sideEdge);
 				playerHurt = 1;
 				playerHurtPaletteTime = uClamp(ySpeed >> 4, 1, 10);
@@ -590,6 +596,7 @@ void moveVertical() {
 			jumpReleased = 0;
 			set_sprite_tile(0, 8);
 			set_sprite_tile(1,  10);
+			playSound(3);
 		}
 		else if (jumping < 12 && !onGround && ySpeed < 0) {
 			jumping += 1;
@@ -983,18 +990,19 @@ void startLevel()  {
 	_saved_bank = _current_bank;
 	SWITCH_ROM(mapBank);
 
-	shouldBreak = 0;
+	hasTraps = 0;
 	for (uint16_t j = 0; j < mapHeight; j++) {
-		if (shouldBreak) {
-			break;
-		}
 		for (uint16_t i = 0; i < mapWidth; i++) {
 			uint16_t ind = mapWidth*j + i;
 			if (mapTiles[ind] == 0x05) {
 				finishTileIndex = ind;
-				shouldBreak = 1;
-				break;
 			}
+			if (mapTiles[ind] == TIMETRAPBLOCKS[0] 
+				||mapTiles[ind] == TIMEPLATFORMBLOCKS[0]
+				|| mapTiles[ind] == TIMEPLATFORMBLOCKS[1] )
+				{
+					hasTraps = 1;
+				}
 		}
 	}
 	SWITCH_ROM(_saved_bank);
@@ -1041,6 +1049,7 @@ void main(){
 
 	while(1) {
 		currentMap = levelSelectionMenu(MAPCOUNT, currentMap);
+
 
 		set_sprite_palette(0, 1, &playerPalette[0]); // loading 1 palette of 4 colors
 
@@ -1090,6 +1099,7 @@ void main(){
 			}
 			
 			if (!(joydata & J_SELECT) && (previousJoydata & J_SELECT)) {
+				playSound(9);
 				startLevel();
 			}
 			if ((joydata & J_A && joydata & J_DOWN) && !(previousJoydata & J_A && previousJoydata & J_DOWN)) {
@@ -1111,6 +1121,7 @@ void main(){
 
 
 			if (checkFinish(finishTileIndex, mapWidth, playerX, playerY)) {
+				playSound(8);
 				mapCompleted(currentMap, hp);
 				currentMap++;
 				if (currentMap >= MAPCOUNT) {
@@ -1123,6 +1134,7 @@ void main(){
 			
 			if (hp <= 0) {
 				set_sprite_palette(0, 1, &playerPalette[0]); 
+				playSound(9);
 				playDeathAnimation(onScreenX, onScreenY, xDir);
 
 				startLevel();

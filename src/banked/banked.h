@@ -26,6 +26,9 @@ BANKREF_EXTERN(u16Clamp)
 int16_t i16abs(int16_t value) BANKED;
 BANKREF_EXTERN(i16abs)
 
+void playSound(uint8_t id) BANKED;
+BANKREF_EXTERN(playSound)
+
 
 void playDeathAnimation(uint16_t x, uint16_t y, int8_t xDir) BANKED;
 BANKREF_EXTERN(playDeathAnimation)
@@ -71,5 +74,6 @@ BANKREF_EXTERN(levelSelectionMenu)
 
 void mapCompleted(uint8_t map, int16_t score) BANKED;
 BANKREF_EXTERN(mapCompleted)
+
 
 #endif

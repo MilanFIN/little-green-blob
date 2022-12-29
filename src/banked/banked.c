@@ -61,6 +61,79 @@ int16_t i16abs(int16_t value) BANKED
 }
 
 
+BANKREF(playSound)
+void playSound(uint8_t id) BANKED
+{
+	if (id == 0) { //splash confirm
+		NR10_REG = 0x74;
+		NR11_REG = 0x82;
+		NR12_REG = 0x83;
+		NR13_REG = 0xc1;
+		NR14_REG = 0x86;
+	}
+	else if (id == 1)  {//menu left/right
+		NR10_REG = 0x00;
+		NR11_REG = 0x80;
+		NR12_REG = 0x42;
+		NR13_REG = 0xa3;//0x11;
+		NR14_REG = 0x85;
+	}
+	else if (id == 2) {//menu confirm
+		NR41_REG = 0x3f;
+		NR42_REG = 0xf1;
+		NR43_REG = 0x80;  
+		NR44_REG = 0xa0;  
+	}
+	else if (id == 3) {//jump
+		NR10_REG = 0x57;
+		NR11_REG = 0xbf;
+		NR12_REG = 0x45;//57
+		NR13_REG = 0x40;
+		NR14_REG = 0x86;
+	}
+	else if (id == 4) {//fire
+		NR21_REG = 0x81;
+		NR22_REG = 0x42;
+		NR23_REG = 0x9f;
+		NR24_REG = 0x86;
+	}
+	else if (id == 5) { //landing
+		NR10_REG = 0x1b;
+		NR11_REG = 0xbf;
+		NR12_REG = 0x43;//57
+		NR13_REG = 0xe0;//73
+		NR14_REG = 0x86;
+	}
+	else if (id == 6) { //switch
+		NR41_REG = 0x0a;
+		NR42_REG = 0x71;
+		NR43_REG = 0x36;  
+		NR44_REG = 0xc0;  
+	}
+	else if (id == 7) { //timed blocks
+		NR41_REG = 0x0a;
+		NR42_REG = 0x51;
+		NR43_REG = 0x37;  
+		NR44_REG = 0xc0;  
+	}
+	else if (id == 8) {//finish
+		NR10_REG = 0x46;
+		NR11_REG = 0x83;
+		NR12_REG = 0x60;
+		NR13_REG = 0xd6;
+		NR14_REG = 0x86;
+	}
+	else if (id == 9) {//restart/dead
+		NR10_REG = 0x7d;
+		NR11_REG = 0x80;
+		NR12_REG = 0x77;
+		NR13_REG = 0x0e;
+		NR14_REG = 0x86;
+	}
+
+}
+
+
 BANKREF(playDeathAnimation)
 void playDeathAnimation(uint16_t x, uint16_t y, int8_t xDir) BANKED 
 {
@@ -393,6 +466,7 @@ void showStartMenu() BANKED
 
 	waitpad(J_START | J_A);
 	waitpadup();
+	playSound(0);
 	wait_vbl_done();
 	HIDE_WIN;
 
@@ -553,16 +627,19 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 
 		waitpadup();
 		if (joydata & J_RIGHT) {
+			playSound(1);
 			if (map < mapcount - 1) {
 				map++;
 			}
 		}
 		if (joydata & J_LEFT) {
+			playSound(1);
 			if (map >  0) {
 				map--;
 			}
 		}
 		if (joydata & J_A || joydata & J_START) {
+			playSound(0);
 			break;
 		}
 		wait_vbl_done();
@@ -570,6 +647,7 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 
 	clearScreen();
 	wait_vbl_done();
+
 	return map;
 } 
 
@@ -594,3 +672,4 @@ void mapCompleted(uint8_t map, int16_t score) BANKED
 
 
 }
+
