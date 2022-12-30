@@ -225,6 +225,36 @@ void switchBlocks() {
 	}
 }
 
+//returns true if there is no collision in a point
+inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
+	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
+	uint8_t floor = 0;
+	
+	for (uint8_t i=0; i < FLOORTILECOUNT; i++) {
+		if (mapTiles[ind] == FLOORTILES[i]) {
+			floor = 1;
+		} 
+	}
+	if (floor) {
+		return 0;
+	}
+
+	else {
+		if (mapTiles[ind] == SWITCHBLOCKS[0] && switchState == 0) {
+			return 0;
+		}
+		if (mapTiles[ind] == SWITCHBLOCKS[1] && switchState == 1) {
+			return 0;
+		}
+		if (mapTiles[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
+			return 0;
+		}		
+		if (mapTiles[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
+			return 0;
+		}
+		return 1;
+	}
+}
 
 
 
@@ -241,7 +271,15 @@ void moveProjectiles() {
 				projectiles[i].scaledX += -((-projectiles[i].xSpeed) >> 3);
 			}
 
-			projectiles[i].ySpeed += AIRGRAVITY ;
+			
+			if (!checkFloorCollision(projectiles[i].x, projectiles[i].y+3)) {
+				projectiles[i].ySpeed = 0;//-(PROJECTILEINITYSPEED >> 1);
+			}
+			else {
+				projectiles[i].ySpeed += AIRGRAVITY ;
+			}
+			
+
 
 			projectiles[i].scaledY += projectiles[i].ySpeed >> 3;
 
@@ -252,7 +290,7 @@ void moveProjectiles() {
 
 		
 			
-			if  (i16abs(playerX - projectiles[i].x) > 300 || i16abs(playerY - projectiles[i].y) > 300) {
+			if  (i16abs(playerX - projectiles[i].x) > 200 || i16abs(playerY - projectiles[i].y) > 100) {
 				removeProjectile(i);
 			}
 			
@@ -380,36 +418,6 @@ void animatePlayer() {
 }
 
 
-//returns true if there is no collision in a point
-inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
-	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
-	uint8_t floor = 0;
-	
-	for (uint8_t i=0; i < FLOORTILECOUNT; i++) {
-		if (mapTiles[ind] == FLOORTILES[i]) {
-			floor = 1;
-		} 
-	}
-	if (floor) {
-		return 0;
-	}
-
-	else {
-		if (mapTiles[ind] == SWITCHBLOCKS[0] && switchState == 0) {
-			return 0;
-		}
-		if (mapTiles[ind] == SWITCHBLOCKS[1] && switchState == 1) {
-			return 0;
-		}
-		if (mapTiles[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
-			return 0;
-		}		
-		if (mapTiles[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
-			return 0;
-		}
-		return 1;
-	}
-}
 
 
 void checkProjectileCollisions() {
@@ -418,10 +426,14 @@ void checkProjectileCollisions() {
 	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
 
 		if (projectiles[i].active) {
+			/*
 			if (!checkFloorCollision(projectiles[i].x, projectiles[i].y+3)) {
-				projectiles[i].ySpeed = - (PROJECTILEINITYSPEED >> 1);
+				projectiles[i].ySpeed = 0;//-(PROJECTILEINITYSPEED >> 1);
 			}
-			if (!checkFloorCollision(projectiles[i].x-3, projectiles[i].y-4) || !checkFloorCollision(projectiles[i].x+3, projectiles[i].y-4)) {
+			*/
+			if (!checkFloorCollision(projectiles[i].x-3, projectiles[i].y-4) //-4 
+				|| !checkFloorCollision(projectiles[i].x+3, projectiles[i].y -4)) 
+			{
 				removeProjectile(i);
 				continue;
 
