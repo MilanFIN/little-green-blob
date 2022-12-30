@@ -184,6 +184,55 @@ uint8_t checkFinish(uint16_t finishTileIndex, uint16_t mapWidth, uint16_t x, uin
 }
 
 
+BANKREF(clearSave)
+void clearSave() BANKED
+{
+	ENABLE_RAM_MBC1; // Enable RAM
+
+	saveInitialized[0] = 'f';
+	saveInitialized[1] = 'f';
+
+	DISABLE_RAM_MBC1; // Disable RAM
+
+
+}
+
+
+BANKREF(loadSave)
+void loadSave() BANKED
+{
+	ENABLE_RAM_MBC1; // Enable RAM
+
+	if (saveInitialized[0] != 'o' || saveInitialized[1] != 'k') {
+
+		for (uint8_t i = 0; i < 20; i++) {
+			saveCompletePointer[i] = 0;
+		}
+		for (uint8_t i = 0; i < 20; i++) {
+			saveScoresPointer[i] = 0;
+		}
+		
+		saveInitialized[0] = 'o';
+		saveInitialized[1] = 'k';
+
+	} 
+
+	for (uint8_t i = 0; i < 20; i++) {
+		if (saveCompletePointer[i] == 1) {
+			mapCompletedSaveValues[i] = 1;
+		}
+		else {
+			mapCompletedSaveValues[i] = 0;
+		}
+		mapScoreSaveValues[i] = saveScoresPointer[i];
+		
+	}
+
+	DISABLE_RAM_MBC1; // Disable RAM
+
+}
+
+
 BANKREF(initBleedSprite)
 void initBleedSprite() BANKED
 {
@@ -489,62 +538,95 @@ void clearScreen()
 
 }
 
-BANKREF(levelSelectionMenu)
-uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
+BANKREF(initLevelMenu)
+void initLevelMenu() BANKED
 {
+	
 	initFont();
 	clearScreen();
 
-	move_bkg(0,0);
-	uint8_t joydata = 0;
+	move_bkg(0,4);
 
-
-	ENABLE_RAM_MBC1; // Enable RAM
-
-	if (saveInitialized[0] != 'o' || saveInitialized[1] != 'k') {
-
-		for (uint8_t i = 0; i < 20; i++) {
-			saveCompletePointer[i] = 0;
-		}
-		for (uint8_t i = 0; i < 20; i++) {
-			saveScoresPointer[i] = 0;
-		}
-		
-		saveInitialized[0] = 'o';
-		saveInitialized[1] = 'k';
-
-	} 
-
-	for (uint8_t i = 0; i < 20; i++) {
-		if (saveCompletePointer[i] == 1) {
-			mapCompletedSaveValues[i] = 1;
-		}
-		else {
-			mapCompletedSaveValues[i] = 0;
-		}
-		mapScoreSaveValues[i] = saveScoresPointer[i];
-		
-	}
-
-	DISABLE_RAM_MBC1; // Disable RAM
-
+	loadSave();
 
 	VBK_REG=1;
-	set_bkg_tiles(4, 3, 12, 1, SelectLevelTextPLN1);
+	set_bkg_tiles(4, 4, 12, 1, SelectLevelTextPLN1);
 	VBK_REG=0;
-	set_bkg_tiles(4, 3, 12, 1, SelectLevelTextPLN0);
+	set_bkg_tiles(4, 4, 12, 1, SelectLevelTextPLN0);
 
 	VBK_REG=1;
-	set_bkg_tiles(6, 13, 8, 1, PlayATextPLN1);
+	set_bkg_tiles(7, 11, 6, 1, PlayATextPLN1);
 	VBK_REG=0;
-	set_bkg_tiles(6, 13, 8, 1, PlayATextPLN0);
+	set_bkg_tiles(7, 11, 6, 1, PlayATextPLN0);
 
 	VBK_REG=1;
 	set_bkg_tiles(9, 9, 2, 1, SelectionLinePLN1);
 	VBK_REG=0;
 	set_bkg_tiles(9, 9, 2, 1, SelectionLinePLN0);
 
+	VBK_REG=1;
+	set_bkg_tiles(3, 17, 17, 1, SelectEraseSavePLN1);
+	VBK_REG=0;
+	set_bkg_tiles(3, 17, 17, 1, SelectEraseSavePLN0);
 
+
+}
+
+BANKREF(eraseSaveMenu)
+uint8_t eraseSaveMenu() BANKED
+{
+	uint8_t joydata = 0;
+	initFont();
+	clearScreen();
+
+	move_bkg(0,4);
+
+	VBK_REG=1;
+	set_bkg_tiles(5, 7, 10, 1, EraseSavePLN1);
+	VBK_REG=0;
+	set_bkg_tiles(5, 7, 10, 1, EraseSavePLN0);
+
+	VBK_REG=1;
+	set_bkg_tiles(7, 10, 5, 1, AYesPLN1);
+	VBK_REG=0;
+	set_bkg_tiles(7, 10, 5, 1, AYesPLN0);
+
+	VBK_REG=1;
+	set_bkg_tiles(7, 11, 4, 1, AYesPLN1);
+	VBK_REG=0;
+	set_bkg_tiles(7, 11, 4, 1, BNoPLN0);
+
+	uint8_t reset = 0;
+	while (1) {
+		waitpad(J_A | J_B);
+		uint8_t joydata = joypad();
+		waitpadup();
+
+		if (joydata & J_A) {
+			//clear memory
+			clearSave();
+			reset = 1;
+			playSound(0);
+
+			break;
+		}
+		if (joydata & J_B) {
+			playSound(9);
+
+			break;
+		}
+	}
+	return reset;
+	
+}
+
+BANKREF(levelSelectionMenu)
+uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
+{
+
+	uint8_t joydata = 0;
+	
+	initLevelMenu();
 
 
 	while (1) {
@@ -622,7 +704,7 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 
 			}
 		}
-		waitpad(J_RIGHT | J_LEFT | J_A | J_START);
+		waitpad(J_RIGHT | J_LEFT | J_A | J_START | J_SELECT);
 		joydata = joypad();
 
 		waitpadup();
@@ -641,6 +723,14 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 		if (joydata & J_A || joydata & J_START) {
 			playSound(0);
 			break;
+		}
+		if (joydata & J_SELECT) {
+			playSound(0);
+			uint8_t reset = eraseSaveMenu();
+			if (reset) {
+				map = 0;
+			}
+			initLevelMenu();
 		}
 		wait_vbl_done();
 	}

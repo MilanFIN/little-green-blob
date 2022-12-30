@@ -1119,6 +1119,7 @@ void main(){
 			}
 
 			if (!(joydata & J_START) && (previousJoydata & J_START)) {
+				playSound(0);
 				break;
 			}
 			checkProjectileCollisions();

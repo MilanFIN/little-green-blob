@@ -37,6 +37,11 @@ BANKREF_EXTERN(playDeathAnimation)
 uint8_t checkFinish(uint16_t finishTileIndex, uint16_t mapWidth, uint16_t x, uint16_t y) BANKED;
 BANKREF_EXTERN(checkFinish)
 
+void clearSave() BANKED;
+BANKREF_EXTERN(clearSave)
+
+void loadSave() BANKED;
+BANKREF_EXTERN(loadSave)
 
 void initBleedSprite() BANKED;
 BANKREF_EXTERN(initBleedSprite)
@@ -68,6 +73,13 @@ BANKREF_EXTERN(initFont)
 
 void showStartMenu() BANKED;
 BANKREF_EXTERN(showStartMenu)
+
+void initLevelMenu() BANKED;
+BANKREF_EXTERN(initLevelMenu)
+
+uint8_t eraseSaveMenu() BANKED;
+BANKREF_EXTERN(eraseSaveMenu)
+
 
 uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED;
 BANKREF_EXTERN(levelSelectionMenu)
