@@ -181,7 +181,7 @@ uint16_t sideEdge;
 
 uint8_t hasTraps = 0;
 
-
+uint8_t justDroppedDown = 0;
 
 void updateTraps() {
 	if (timeTrapCounter == 0) {
@@ -525,6 +525,9 @@ inline void addGravity() {
 
 	
 	if (mapTiles[ind] == 0x02 || mapTiles[ind] == 0x03 ) {
+		if (!inWater) {
+			playSound(10);
+		}
 		inWater = 1;
 		if (ySpeed > WATERFALLSPEEDLIMIT) {
 			ySpeed = WATERFALLSPEEDLIMIT;
@@ -555,9 +558,17 @@ void moveVertical() {
 				set_sprite_tile(0, 12);
 				set_sprite_tile(1,  14);
 
+				if (justDroppedDown) {
+					playSound(5);
+					justDroppedDown = 0;
+				}
+
 			}
 			else {
 				onGround = 1;
+				justDroppedDown = 0;
+				dropDownFrames = 0;
+
 			}
 		}
 		//regular gravity check
@@ -953,6 +964,8 @@ void startLevel()  {
 	xSpeed = 0;
 	ySpeed = 0;
 
+	justDroppedDown = 0;
+
 	initProjectiles();
 	hp = maxHp;
 
@@ -1115,6 +1128,7 @@ void main(){
 				startLevel();
 			}
 			if ((joydata & J_A && joydata & J_DOWN) && !(previousJoydata & J_A && previousJoydata & J_DOWN)) {
+				justDroppedDown = 1;
 				dropDownFrames = DROPDOWNDURATION;
 			}
 

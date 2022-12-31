@@ -130,8 +130,13 @@ void playSound(uint8_t id) BANKED
 		NR13_REG = 0x0e;
 		NR14_REG = 0x86;
 	}
-
-}
+	else if (id == 10) { //timed blocks
+		NR10_REG = 0x42;//1a;
+		NR11_REG = 0x86;
+		NR12_REG = 0x55;
+		NR13_REG = 0xb3;
+		NR14_REG = 0x83;
+	}}
 
 
 BANKREF(playDeathAnimation)
