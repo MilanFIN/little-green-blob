@@ -575,7 +575,6 @@ void initLevelMenu() BANKED
 BANKREF(eraseSaveMenu)
 uint8_t eraseSaveMenu() BANKED
 {
-	uint8_t joydata = 0;
 	initFont();
 	clearScreen();
 
@@ -597,12 +596,13 @@ uint8_t eraseSaveMenu() BANKED
 	set_bkg_tiles(7, 11, 4, 1, BNoPLN0);
 
 	uint8_t reset = 0;
-	while (1) {
-		waitpad(J_A | J_B);
-		uint8_t joydata = joypad();
-		waitpadup();
+	uint8_t joydata = 0;
+	uint8_t previousJoydata = joypad();
 
-		if (joydata & J_A) {
+	while (1) {
+
+		joydata = joypad();
+		if (!(joydata & J_A) && (previousJoydata & J_A)) {
 			//clear memory
 			clearSave();
 			reset = 1;
@@ -610,11 +610,13 @@ uint8_t eraseSaveMenu() BANKED
 
 			break;
 		}
-		if (joydata & J_B) {
+		if (!(joydata & J_B) && (previousJoydata & J_B)) {
 			playSound(9);
 
 			break;
 		}
+		previousJoydata = joydata;
+		wait_vbl_done();
 	}
 	return reset;
 	
@@ -625,6 +627,7 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 {
 
 	uint8_t joydata = 0;
+	uint8_t previousJoydata = joypad();
 	
 	initLevelMenu();
 
@@ -704,27 +707,27 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 
 			}
 		}
-		waitpad(J_RIGHT | J_LEFT | J_A | J_START | J_SELECT);
+
 		joydata = joypad();
 
-		waitpadup();
-		if (joydata & J_RIGHT) {
+
+		if (!(joydata & J_RIGHT) && (previousJoydata & J_RIGHT)) {
 			playSound(1);
 			if (map < mapcount - 1) {
 				map++;
 			}
 		}
-		if (joydata & J_LEFT) {
+		if (!(joydata & J_LEFT) && (previousJoydata & J_LEFT)) {
 			playSound(1);
 			if (map >  0) {
 				map--;
 			}
 		}
-		if (joydata & J_A || joydata & J_START) {
+		if (!(joydata & J_A) && (previousJoydata & J_A)) {
 			playSound(0);
 			break;
 		}
-		if (joydata & J_SELECT) {
+		if (!(joydata & J_SELECT) && (previousJoydata & J_SELECT)) {
 			playSound(0);
 			uint8_t reset = eraseSaveMenu();
 			if (reset) {
@@ -732,6 +735,7 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 			}
 			initLevelMenu();
 		}
+		previousJoydata = joydata;
 		wait_vbl_done();
 	}
 
