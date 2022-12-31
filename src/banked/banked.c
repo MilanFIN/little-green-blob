@@ -652,9 +652,9 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 
 						//set points
 						VBK_REG=1;
-						set_bkg_tiles(7, 7, 1, 1, levelsPLN1+2);
-						set_bkg_tiles(8, 7, 1, 1, levelsPLN1+2);
-						set_bkg_tiles(9, 7, 1, 1, levelsPLN1+2);
+						set_bkg_tiles(7, 7, 1, 1, levelsPLN1+1);
+						set_bkg_tiles(8, 7, 1, 1, levelsPLN1+1);
+						set_bkg_tiles(9, 7, 1, 1, levelsPLN1+1);
 						set_bkg_tiles(10, 7, 3, 1, ptsPLN1);
 						VBK_REG=0;
 						set_bkg_tiles(7, 7, 1, 1, levelsPLN0+scoreFirstDigit);
