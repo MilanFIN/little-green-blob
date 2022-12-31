@@ -335,7 +335,7 @@ void fire() {
 	projectiles[oldestProjectile].scaledX = (playerX + 4)<<3;
 	projectiles[oldestProjectile].scaledY = (playerY -8)<<3;
 
-	projectiles[oldestProjectile].framesSinceActivation = 0;
+	projectiles[oldestProjectile].framesSinceActivation = PROJECTILEACTIVATIONCOOLDOWN;
 	
 
 	if (xDir > 0) {
