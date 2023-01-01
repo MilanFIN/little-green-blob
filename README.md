@@ -20,7 +20,7 @@ Most important functions should (hopefully in the future) have a descriptor comm
 
 `maps/`: all map source files
 
-## converter colder
+## converter
 Contains a python script to convert gameboy map builder exports into versions compatible with this project.
 
 Example call eg: `python3 converter.py -sc map14.c -he map14.h`
