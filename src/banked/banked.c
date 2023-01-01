@@ -26,11 +26,11 @@ int8_t bleedDir = 0;
 
 
 char *saveInitialized = (char *)0xa000; //1 byte * 2
-uint8_t *saveCompletePointer = (int *)0xa002; //1 bytes * 20
-int16_t *saveScoresPointer = (int *)0xa016; //4 bytes * 20
+uint8_t *saveCompletePointer = (int *)0xa002; //1 bytes * 100
+int16_t *saveScoresPointer = (int *)0xa066;//0xa016; //4 bytes * 100
 
-uint8_t mapCompletedSaveValues[20];
-int16_t mapScoreSaveValues[20];
+uint8_t mapCompletedSaveValues[100];
+int16_t mapScoreSaveValues[100];
 
 
 
@@ -204,16 +204,16 @@ void clearSave() BANKED
 
 
 BANKREF(loadSave)
-void loadSave() BANKED
+void loadSave(uint8_t mapcount) BANKED
 {
 	ENABLE_RAM_MBC1; // Enable RAM
 
 	if (saveInitialized[0] != 'o' || saveInitialized[1] != 'k') {
 
-		for (uint8_t i = 0; i < 20; i++) {
+		for (uint8_t i = 0; i < mapcount; i++) {
 			saveCompletePointer[i] = 0;
 		}
-		for (uint8_t i = 0; i < 20; i++) {
+		for (uint8_t i = 0; i < mapcount; i++) {
 			saveScoresPointer[i] = 0;
 		}
 		
@@ -222,7 +222,7 @@ void loadSave() BANKED
 
 	} 
 
-	for (uint8_t i = 0; i < 20; i++) {
+	for (uint8_t i = 0; i < mapcount; i++) {
 		if (saveCompletePointer[i] == 1) {
 			mapCompletedSaveValues[i] = 1;
 		}
@@ -544,7 +544,7 @@ void clearScreen()
 }
 
 BANKREF(initLevelMenu)
-void initLevelMenu() BANKED
+void initLevelMenu(uint8_t mapcount) BANKED
 {
 	
 	initFont();
@@ -552,7 +552,7 @@ void initLevelMenu() BANKED
 
 	move_bkg(0,4);
 
-	loadSave();
+	loadSave(mapcount);
 
 	VBK_REG=1;
 	set_bkg_tiles(4, 4, 12, 1, SelectLevelTextPLN1);
@@ -634,7 +634,7 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 	uint8_t joydata = 0;
 	uint8_t previousJoydata = joypad();
 	
-	initLevelMenu();
+	initLevelMenu(mapcount);
 
 	uint8_t mapChanged = 1;
 	while (1) {
@@ -747,7 +747,7 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 			if (reset) {
 				map = 0;
 			}
-			initLevelMenu();
+			initLevelMenu(mapcount);
 			mapChanged = 1;
 		}
 		previousJoydata = joydata;

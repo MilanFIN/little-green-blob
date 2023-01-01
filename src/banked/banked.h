@@ -40,7 +40,7 @@ BANKREF_EXTERN(checkFinish)
 void clearSave() BANKED;
 BANKREF_EXTERN(clearSave)
 
-void loadSave() BANKED;
+void loadSave(uint8_t mapcount) BANKED;
 BANKREF_EXTERN(loadSave)
 
 void initBleedSprite() BANKED;
@@ -74,7 +74,7 @@ BANKREF_EXTERN(initFont)
 void showStartMenu() BANKED;
 BANKREF_EXTERN(showStartMenu)
 
-void initLevelMenu() BANKED;
+void initLevelMenu(uint8_t mapcount) BANKED;
 BANKREF_EXTERN(initLevelMenu)
 
 uint8_t eraseSaveMenu() BANKED;
