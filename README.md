@@ -6,7 +6,7 @@ A gameboy platformer written in C using gbdk-2020.
 
 Modify `GBDK_HOME` variable in the `Makefile` with the path to the gbdk-2020 toolset
 
-After that call `Make -B`. Output will be placed in `build/gb/main.gb`
+After that run `Make -B`. Output will be placed in `build/gb/main.gb`
 
 ## Project structure
 
