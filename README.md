@@ -18,7 +18,7 @@ Most important functions should (hopefully in the future) have a descriptor comm
 
 `src/banked/mapholder.c`: a manager for retrieving pointers to map data & their corresponding memory banks.
 
-`src/maps/`: all map source files
+`src/maps/`: all map (as in levels) source files
 
 ## adding new maps
 
