@@ -27,7 +27,7 @@
 
 
 
-
+//returns the memory bank that a specific map (by map number) is stored in
 BANKREF(getMapBank)
 uint8_t getMapBank(uint8_t  mapNumber) BANKED {
 	uint8_t mapBank;
@@ -102,7 +102,7 @@ uint8_t getMapBank(uint8_t  mapNumber) BANKED {
 	return mapBank;
 }
 
-
+//Returns the width of a map for the corresponding map number
 BANKREF(getMapWidth)
 uint8_t getMapWidth(uint8_t  mapNumber) BANKED {
 	
@@ -179,6 +179,7 @@ uint8_t getMapWidth(uint8_t  mapNumber) BANKED {
 	return mapWidth;
 }
 
+//Returns the height of a map for a corresponding map number
 BANKREF(getMapHeight)
 uint8_t getMapHeight(uint8_t  mapNumber) BANKED {
 	
@@ -254,6 +255,7 @@ uint8_t getMapHeight(uint8_t  mapNumber) BANKED {
 	return mapHeight;
 }
 
+//returns a pointer to the memory location, where a map's tiles are stored
 BANKREF(getMapTiles)
 uint16_t getMapTiles(uint8_t mapNumber) BANKED {
 	FAR_PTR tilePtr;
@@ -328,6 +330,7 @@ uint16_t getMapTiles(uint8_t mapNumber) BANKED {
 }
 
 
+//returns a pointer to the memory location, where a map's palette data tiles are stored
 BANKREF(getMapPalette)
 uint16_t getMapPalette(uint8_t mapNumber) BANKED {
 	FAR_PTR palettePtr;

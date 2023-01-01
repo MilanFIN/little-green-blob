@@ -25,34 +25,37 @@ uint8_t bleedActive = 0;
 int8_t bleedDir = 0;
 
 
-char *saveInitialized = (char *)0xa000; //1 byte * 2
+//memory pointers to save data locations & tables to hold them at runtime
+char *saveInitialized = (char *)0xa000; //1 byte * 2, contains "ok", when save exists
 uint8_t *saveCompletePointer = (int *)0xa002; //1 bytes * 100
-int16_t *saveScoresPointer = (int *)0xa066;//0xa016; //4 bytes * 100
-
+int16_t *saveScoresPointer = (int *)0xa066; //4 bytes * 100
 uint8_t mapCompletedSaveValues[100];
 int16_t mapScoreSaveValues[100];
 
 
 
-
+//clamp unsigned 8 bit int
 BANKREF(uClamp)
 uint8_t uClamp( uint8_t value, uint8_t min, uint8_t max ) BANKED
 {
     return (value < min) ? min : (value > max) ? max : value;
 }
 
+//clamp signed 16 bit int
 BANKREF(i16Clamp)
 int16_t i16Clamp( int16_t value, int16_t min, int16_t max ) BANKED
 {
     return (value < min) ? min : (value > max) ? max : value;
 }
 
+//clamp unsigned 16 bit int
 BANKREF(u16Clamp)
 uint16_t u16Clamp( uint16_t value, uint16_t min, uint16_t max ) BANKED
 {
     return (value < min) ? min : (value > max) ? max : value;
 }
 
+//returns absolute value of signed 16bit int
 BANKREF(i16abs)
 int16_t i16abs(int16_t value) BANKED
 {
@@ -60,7 +63,7 @@ int16_t i16abs(int16_t value) BANKED
 	else return - value;
 }
 
-
+//sets sound registers to play a sound corresponding to an id
 BANKREF(playSound)
 void playSound(uint8_t id) BANKED
 {
@@ -139,6 +142,7 @@ void playSound(uint8_t id) BANKED
 	}}
 
 
+//"flickers" player sprite on&off a couple of times at a specific location and face direction
 BANKREF(playDeathAnimation)
 void playDeathAnimation(uint16_t x, uint16_t y, int8_t xDir) BANKED 
 {
@@ -174,7 +178,10 @@ void playDeathAnimation(uint16_t x, uint16_t y, int8_t xDir) BANKED
 	}
 }
 
-//1 if finished, 0 otherwise
+//checks if player is on top of the finish tile
+//returns: 1 if finished, otherwise 0
+// params: finishtileindex: index of finish tile in 1d array of the map
+//			mapWidth: map width, x&y, player position (position of the bottom right edge of the left player sprite)
 BANKREF(checkFinish)
 uint8_t checkFinish(uint16_t finishTileIndex, uint16_t mapWidth, uint16_t x, uint16_t y) BANKED
 {
@@ -188,7 +195,7 @@ uint8_t checkFinish(uint16_t finishTileIndex, uint16_t mapWidth, uint16_t x, uin
 	}
 }
 
-
+//erases save by unsetting the "ok" value to something else in the start of sram (.sav file for emulators)
 BANKREF(clearSave)
 void clearSave() BANKED
 {
@@ -202,7 +209,8 @@ void clearSave() BANKED
 
 }
 
-
+// loads save from sram (.sav file). Initializes save data if "ok" message has not been set at the start of the save area
+//params: 	mapcount: number of levels that exist in the game
 BANKREF(loadSave)
 void loadSave(uint8_t mapcount) BANKED
 {
@@ -237,7 +245,7 @@ void loadSave(uint8_t mapcount) BANKED
 
 }
 
-
+//initializes player "bleed" sprite to vram
 BANKREF(initBleedSprite)
 void initBleedSprite() BANKED
 {
@@ -287,6 +295,7 @@ void initBleedSprite() BANKED
 
 }
 
+//makes the the bleed sprite appear based on player location, not used currently
 BANKREF_EXTERN(spawnBleed)
 void spawnBleed(uint16_t x, uint16_t y, int8_t direction) BANKED
 {
@@ -304,6 +313,7 @@ void spawnBleed(uint16_t x, uint16_t y, int8_t direction) BANKED
 	bleedActive = 1;
 }
 
+//moves the bleed sprite to a new location
 BANKREF_EXTERN(scrollBleed)
 void scrollBleed(int16_t x, int16_t y) BANKED
 {
@@ -318,6 +328,7 @@ void scrollBleed(int16_t x, int16_t y) BANKED
 	}
 }
 
+// loops through the frames of the bleed sprite and moves it out of the viewport after animation is complete
 BANKREF(loopBleed)
 void loopBleed() BANKED
 {
@@ -339,7 +350,7 @@ void loopBleed() BANKED
 	}
 }
 
-
+//initializes the splash sprite in vram, for when player hits the ground
 BANKREF(initSplashDownSprite)
 void initSplashDownSprite() BANKED
 {
@@ -408,6 +419,9 @@ void initSplashDownSprite() BANKED
 
 }
 
+//spawns the splash sprite in a location
+//params: 	x&y: player position, 
+//			sideEdge: current horizontal radius of player character
 void spawnSplash(uint16_t x, uint16_t y, uint16_t sideEdge) BANKED
 {
 
@@ -426,6 +440,7 @@ void spawnSplash(uint16_t x, uint16_t y, uint16_t sideEdge) BANKED
 
 }
 
+//moves the splash sprites based on the parameters
 BANKREF(scrollSplash)
 void scrollSplash(int16_t xchange, int16_t ychange) BANKED
 {
@@ -435,8 +450,7 @@ void scrollSplash(int16_t xchange, int16_t ychange) BANKED
 	}
 }
 
-
-
+//loops through the frames of the splash animation & "hides" the sprite after completion
 BANKREF(loopSplash)
 void loopSplash() BANKED
 {
@@ -462,7 +476,7 @@ void loopSplash() BANKED
 	}
 }
 
-
+//initializes font characters in vram, values defined in banked/font.h
 BANKREF(initFont)
 void initFont() BANKED
 {
@@ -476,9 +490,7 @@ void initFont() BANKED
 
 }
 
-
-
-
+// displays initial splashscreen for the game and awaits START button press
 BANKREF(showStartMenu)
 void showStartMenu() BANKED
 {
@@ -526,6 +538,7 @@ void showStartMenu() BANKED
 
 }
 
+// clears the window & background layers with black tiles
 void clearScreen() 
 {
 	for (uint8_t i=0; i < 32; ++i) {
@@ -543,6 +556,8 @@ void clearScreen()
 
 }
 
+// initializes the static elements of the level selection menu & loads save(score) data
+// params: mapcount: number of levels in the game
 BANKREF(initLevelMenu)
 void initLevelMenu(uint8_t mapcount) BANKED
 {
@@ -577,6 +592,8 @@ void initLevelMenu(uint8_t mapcount) BANKED
 
 }
 
+// displays menu for confirming save data deletion
+// return: 1 if save was erased, 0 if not
 BANKREF(eraseSaveMenu)
 uint8_t eraseSaveMenu() BANKED
 {
@@ -627,6 +644,10 @@ uint8_t eraseSaveMenu() BANKED
 	
 }
 
+// displays level selection menu with scores and map completion indications
+// params: 	mapcount: number of levels in the game
+//			map: the level which should be focused for selection when the menu loads
+// returns: the number (serial id) of the selected map
 BANKREF(levelSelectionMenu)
 uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 {
@@ -760,7 +781,8 @@ uint8_t levelSelectionMenu(uint8_t mapcount, uint8_t map) BANKED
 	return map;
 } 
 
-
+// stores map completion status & score into save (sram or .sav),
+// if saved values differ from pre-existing ones
 BANKREF(mapCompleted)
 void mapCompleted(uint8_t map, int16_t score) BANKED
 {
