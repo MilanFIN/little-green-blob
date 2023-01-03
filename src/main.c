@@ -28,14 +28,6 @@
 #define MIN(A,B) ((A)<(B)?(A):(B))
 
 
-//TODO: 
-//karttojen export pitäis olla 8/8 ei 7/3
-// map 12 block pois per tason reuna
-
-//vivun osuma on epävarmaa
-//ulos/alas suuntautuva efekti, kun osuu maahan
-//menosuuntaan nähden taakse efekti, kun kutistuu liikkuessa
-
 const unsigned char FLOORTILES[2] = {0x01, 0x06}; 
 const uint8_t FLOORTILECOUNT = 2;
 const unsigned char ROOFTILES[1] = {0x01}; 

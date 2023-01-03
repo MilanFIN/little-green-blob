@@ -519,7 +519,7 @@ void showStartMenu() BANKED
 
 
 	VBK_REG=0;
-	move_bkg(8,0);
+	move_bkg(7,0);
 	unsigned char offset_splash_map[128];
 	for (uint8_t i = 0; i < 128; ++i) {
 		offset_splash_map[i] = splash_map[i] + 0x60;
