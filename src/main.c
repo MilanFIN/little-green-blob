@@ -27,7 +27,10 @@
 
 #define MIN(A,B) ((A)<(B)?(A):(B))
 
+//increment this, whenever adding new maps
+const uint8_t MAPCOUNT = 20;
 
+//addresses for different map tiles in vram
 const unsigned char FLOORTILES[2] = {0x01, 0x06}; 
 const uint8_t FLOORTILECOUNT = 2;
 const unsigned char ROOFTILES[1] = {0x01}; 
@@ -38,23 +41,25 @@ const unsigned char SWITCHBLOCKS[2] = {0x08, 0x09};
 const uint8_t SWITCHTILE = 0x0a;
 const unsigned char TIMETRAPBLOCKS[1] = {0x0b}; 
 const unsigned char TIMEPLATFORMBLOCKS[2] = {0x0c, 0x0d}; 
+const uint8_t SPAWNPOINTTILE = 0x04;
 
 
-
-
+//pointers to hold map data for a currently loaded map
 uint8_t mapBank;
-unsigned char* mapTiles;//FAR_CALL(tilePtr,uint16_t (*)(void));
-unsigned char* mapPalette; //FAR_CALL(palettePtr,uint16_t (*)(void));
-uint8_t mapWidth; //FAR_CALL(widthPtr,uint8_t (*)(void));
-uint8_t mapHeight; //FAR_CALL(widthPtr,uint8_t (*)(void));
+unsigned char* mapTiles;
+unsigned char* mapPalette;
+uint8_t mapWidth;
+uint8_t mapHeight; 
 
+//serial id to keep track of the current map/level
 uint8_t currentMap = 0;
-const uint8_t MAPCOUNT = 20;
 
 
 
 
 
+
+//palette data for different sprites
 const UWORD playerPalette[] = {
 	PlayerTiles0CGBPal0c0,
 	PlayerTiles0CGBPal0c1,
@@ -76,7 +81,7 @@ const UWORD projectilePalette[] = {
 };
 
 
-
+//used to keep track of the original bank whenever switching away from the main one
 uint8_t _saved_bank;
 
 
@@ -84,32 +89,38 @@ uint8_t _saved_bank;
 uint8_t switchState = 0;
 //raises/lowers spike traps, 0 for down
 uint8_t timeTrapState = 1;
-
+//counter for time traps, triggers when reaching zero
 uint8_t timeTrapCounter = 60;
 const uint8_t TIMETRAPTIMELIMIT = 60;
 
-
+//center of screen 
 const uint8_t CENTERX = 80;
 const uint8_t CENTERY = 72;
 
 uint8_t joydata = 0;
 uint8_t previousJoydata = 0;
 
-
+//timers for switching player palette whenever taking damage
 uint8_t playerHurtPaletteTime = 10;//frames
 uint8_t playerHurt = 0;
 uint8_t playerHurtPaletteCounter = 0;
 
+//player position when scaled down onto draw space, not actual onscreen position, but instead related
+//to the background map's top left edge
+// x: center of player
+//y: bottom edge of player
 uint16_t playerX = 80;
 uint16_t playerY = 50;
 
+//player position in game logic,
+//multiplied by 8 to achieve subpixel movement
 int16_t playerXScaled = 80<<3;
 int16_t playerYScaled = 50<<3;
 
-//where player is facing toward
+//1 when player facing forward
 int8_t xDir = 1;
 
-
+//accels for horizontal movement
 const int16_t groundAcceleration = 16;
 const int16_t airAcceleration = 4;
 //scaled by factor of 2^3 = 8
@@ -117,9 +128,11 @@ int16_t xSpeed = 0;
 const int16_t maxXSpeed = 64;
 
 //positive when going down
-// scaled by factor of 2^3 = 8
+// scaled down by factor of 2^3 = 8, before applying to scaledposition
 int16_t ySpeed = 0;
+//accel downwards
 const int16_t AIRGRAVITY = 8;
+//clamping speed downward whenever in water
 const int16_t WATERFALLSPEEDLIMIT = 32;
 //initial jump power
 const int16_t JUMPPOWER = 80;
@@ -127,13 +140,15 @@ const int16_t JUMPPOWER = 80;
 const int16_t JUMPCARRY = 16;
 
 
-
+//keeping track of jump status with these
 uint8_t onGround = 0;
 uint8_t inWater = 0;
 uint8_t jumping = 0;
+//0 when a is pressed
 uint8_t jumpReleased = 1;
 
 //nonzero value means, that player should fall through floor only tiles (aka single directional platforms)
+// used for dropping down platforms
 uint8_t dropDownFrames = 0;
 const uint8_t DROPDOWNDURATION = 20;
 
@@ -141,15 +156,19 @@ const uint8_t DROPDOWNDURATION = 20;
 // initialized during level load
 uint16_t finishTileIndex = 0;
 
+//health
 int16_t hp = 800;
 const int16_t maxHp = 800;
 
+//frame counter for player idle animation
 uint8_t playerFrame = 0;
 uint8_t frameCounter = 20;
 const uint8_t ANIMFRAMETIME = 20;
 
+//keeps track of last player "size" tile from previous frame
 uint8_t previousTile = 0;
 
+//map position related stuff, a bit complex due to using submap
 uint8_t old_map_pos_x = 255;
 uint8_t old_map_pos_y = 255;
 int16_t xDiff = 0;
@@ -157,6 +176,7 @@ int16_t yDiff = 0;
 
 int16_t oldXDiff = 0;
 int16_t oldYDiff = 0;
+
 int16_t onScreenX = 0;
 int16_t onScreenY = 0;
 
@@ -167,14 +187,17 @@ int16_t oldOnScreenX = 0;
 // (larger number for less dmg)
 const uint8_t FALLDAMAGESCALE = 1;
 
-
+//keeps track of the height of player in pixels
 uint16_t hatHeight;
+//keeps track of width of player from center in both directions
 uint16_t sideEdge;
-
+//1 if a map has traps that switch based on time
 uint8_t hasTraps = 0;
 
+//true if a+down was just pressed
 uint8_t justDroppedDown = 0;
 
+//shifts time based traps (spikes) up & down
 void updateTraps() {
 	if (timeTrapCounter == 0) {
 		if (hasTraps) {
@@ -195,12 +218,13 @@ void updateTraps() {
 	}
 }
 
- void removeProjectile(uint8_t i) {
+//deactivates a projectile blob and moves it away from viewport
+void removeProjectile(uint8_t i) {
 	projectiles[i].active = 0;
 	move_sprite(projectiles[i].tile, 200, 200);
 }
 
-
+//switches blue&red blocks on/off. One is always a platform, and the other is not
 void switchBlocks() {
 
 	playSound(6);
@@ -217,7 +241,10 @@ void switchBlocks() {
 	}
 }
 
-//returns true if there is no collision in a point
+//checks for collision with floors in a specific point (onscreen x & y)
+//presumes that the ROM BANK has been set to the one stored in mapBank before function call
+//returns: 1 if there is no collision with floortiles or switch controlled & timed blocks in a point
+//			0 if there is a collision
 inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
 	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
 	uint8_t floor = 0;
@@ -249,7 +276,83 @@ inline uint8_t checkFloorCollision(uint16_t x, uint16_t y) {
 }
 
 
+//checks for collision with roof tiles in a specific point (onscreen x & y)
+//presumes that the ROM BANK has been set to the one stored in mapBank before function call
+//returns: 1 if there is no roof tiles, 0 if there is a collision
+inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
+	
+	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
+	uint8_t roof = 0;
+	for (uint8_t i=0; i < ROOFTILECOUNT; i++) {
+		if (mapTiles[ind] == ROOFTILES[i]) {
+			roof = 1;
+		} 
+	}
+	if (roof) {
+		return 0;
+	}
+	
+	else {
+		if (mapTiles[ind] == SWITCHBLOCKS[0] && switchState == 0) {
+			return 0;
+		}
+		if (mapTiles[ind] == SWITCHBLOCKS[1] && switchState == 1) {
+			return 0;
+		}
+		if (mapTiles[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
+			return 0;
+		}		
+		if (mapTiles[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
+			return 0;
+		}
+		return 1;
+	}
+}
 
+//checks if point overlaps any active traps or other obstacles
+//returns 1, if there is no overlap, 0 otherwise
+//presumes that the ROM BANK has been set to the one stored in mapBank before function call
+inline uint8_t checkObstacleCollision(uint16_t x, uint16_t y) {
+	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
+	uint8_t dead = 0;
+	for (uint8_t i=0; i < OBSTACLECOUNT; i++) {
+		if (mapTiles[ind] == OBSTACLETILES[i]) {
+			dead = 1;
+		} 
+	}
+	if (dead) {
+		return 0;
+	}
+	else {
+		if (timeTrapState) { //traps are in up position
+			if (mapTiles[ind] == TIMETRAPBLOCKS[0]) {
+				return 0;
+			}
+		}
+	}
+	return 1 ;
+}
+
+//checks if player collides with any traps or obtacles
+//if so, sets hp to 0
+//presumes that the ROM BANK has been set to the one stored in mapBank before function call
+void checkTrapCollision() {
+	_saved_bank = _current_bank;
+	SWITCH_ROM(mapBank);
+	if (!checkObstacleCollision(playerX - sideEdge +1, playerY - (hatHeight >> 1) +1)
+	|| !checkObstacleCollision(playerX - sideEdge +1, playerY-1) 
+	|| !checkObstacleCollision(playerX + sideEdge -1, playerY - (hatHeight >> 1)+1)
+	|| !checkObstacleCollision(playerX + sideEdge +1, playerY-1) )
+	{
+		hp = 0;
+	}
+	SWITCH_ROM(_saved_bank);
+}
+
+
+
+//moves all active projectiles horizontally & vertically
+//stops them if they hit the floor & removes them if they are too far from the player
 void moveProjectiles() {
 
 	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
@@ -265,7 +368,7 @@ void moveProjectiles() {
 
 			
 			if (!checkFloorCollision(projectiles[i].x, projectiles[i].y+3)) {
-				projectiles[i].ySpeed = 0;//-(PROJECTILEINITYSPEED >> 1);
+				projectiles[i].ySpeed = 0;
 			}
 			else {
 				projectiles[i].ySpeed += AIRGRAVITY ;
@@ -293,7 +396,7 @@ void moveProjectiles() {
 	}
 }
 
-
+//initiates a new projectile if the oldest known projectile is not active
 void fire() {
 
 	if (framesSinceLastFire < fireDelay) {
@@ -345,45 +448,8 @@ void fire() {
 }
 
 
-//returns 1, if player should stay alive
-//presumes that mapbank has been switched to
-inline uint8_t checkObstacleCollision(uint16_t x, uint16_t y) {
-	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
-	uint8_t dead = 0;
-	for (uint8_t i=0; i < OBSTACLECOUNT; i++) {
-		if (mapTiles[ind] == OBSTACLETILES[i]) {
-			dead = 1;
-		} 
-	}
-	if (dead) {
-		return 0;
-	}
-	else {
-		if (timeTrapState) { //traps are in up position
-			if (mapTiles[ind] == TIMETRAPBLOCKS[0]) {
-				return 0;
-			}
-		}
-	}
-	return 1 ;
-}
-
-void checkTrapCollision() {
-	_saved_bank = _current_bank;
-	SWITCH_ROM(mapBank);
-	if (!checkObstacleCollision(playerX - sideEdge +1, playerY - (hatHeight >> 1) +1)
-	|| !checkObstacleCollision(playerX - sideEdge +1, playerY-1) 
-	|| !checkObstacleCollision(playerX + sideEdge -1, playerY - (hatHeight >> 1)+1)
-	|| !checkObstacleCollision(playerX + sideEdge +1, playerY-1) )
-	{
-		hp = 0;
-	}
-	SWITCH_ROM(_saved_bank);
-}
-
-
-
-
+//loops through the 2 player idle animation frames
+//and animates the palette change for when taking damage
 void animatePlayer() {
 
 	frameCounter -= 1;
@@ -409,20 +475,16 @@ void animatePlayer() {
 	}
 }
 
-
-
-
+//checks if a projectile collides with the following and performs actions
+// switches: triggers switch blocks to flip
+// vertical wall: delete projectile
 void checkProjectileCollisions() {
 	_saved_bank = _current_bank;
 	SWITCH_ROM(mapBank);
 	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
 
 		if (projectiles[i].active) {
-			/*
-			if (!checkFloorCollision(projectiles[i].x, projectiles[i].y+3)) {
-				projectiles[i].ySpeed = 0;//-(PROJECTILEINITYSPEED >> 1);
-			}
-			*/
+
 			if (!checkFloorCollision(projectiles[i].x-3, projectiles[i].y-4) //-4 
 				|| !checkFloorCollision(projectiles[i].x+3, projectiles[i].y -4)) 
 			{
@@ -451,7 +513,9 @@ void checkProjectileCollisions() {
 
 }
 
-//presumes mapbank being set
+//presumes that ROM_BANK is set to mapBank before a call
+//puts a player that is slightly off floor level onto ground
+//iterates downward from the player's feet and checks when floor is reached
 void putPlayerOnGround(uint16_t sideEdge) {
 	uint16_t yDistance = 0;
 	uint16_t newPlayerY = playerY;
@@ -475,39 +539,10 @@ void putPlayerOnGround(uint16_t sideEdge) {
 
 
 
-//presumes we are already in mapbank
-inline uint8_t checkRoofCollision(uint16_t x, uint16_t y) {
-	
-	uint16_t ind = mapWidth*((y)>>3) + ((x)>>3);
-	uint8_t roof = 0;
-	for (uint8_t i=0; i < ROOFTILECOUNT; i++) {
-		if (mapTiles[ind] == ROOFTILES[i]) {
-			roof = 1;
-		} 
-	}
-	if (roof) {
-		return 0;
-	}
-	
-	else {
-		if (mapTiles[ind] == SWITCHBLOCKS[0] && switchState == 0) {
-			return 0;
-		}
-		if (mapTiles[ind] == SWITCHBLOCKS[1] && switchState == 1) {
-			return 0;
-		}
-		if (mapTiles[ind] == TIMEPLATFORMBLOCKS[0] && timeTrapState == 0) {
-			return 0;
-		}		
-		if (mapTiles[ind] == TIMEPLATFORMBLOCKS[1] && timeTrapState == 1) {
-			return 0;
-		}
-		return 1;
-	}
-}
 
-
-//presumes that bank has been set to mapbank
+//presumes that ROM_BANK is set to mapBank before a call
+//moves player downward in accelerating manner.
+//speed down is clamped when overlapping with water tiles
 inline void addGravity() {
 	uint16_t ind = mapWidth*((playerY - 2)>>3) + ((playerX)>>3);
 	ySpeed += AIRGRAVITY;
@@ -530,7 +565,7 @@ inline void addGravity() {
 	}
 }
 
-
+//moves player vertically
 void moveVertical() {
 	_saved_bank = _current_bank;
 
@@ -563,8 +598,8 @@ void moveVertical() {
 
 			}
 		}
-		//regular gravity check
 		else {
+			//checking if player should fall (not on a floor)
 			if (checkFloorCollision(playerX, newPlayerY) && checkFloorCollision(playerX+ sideEdge -1, newPlayerY) && checkFloorCollision(playerX-sideEdge + 1, newPlayerY)) {
 				addGravity();
 				onGround = 0;
@@ -577,8 +612,9 @@ void moveVertical() {
 			}
 		}
 		if (onGround) {
+			//checking if the player has just "hit" the floor
 			if (ySpeed != 0) {
-				//when hitting ground, player might be a couple pixels off the ground
+				//when hitting ground, player might be a couple pixels off, so move them firmly on the ground
 				playSound(5);
 				putPlayerOnGround(sideEdge);
 				playerHurt = 1;
@@ -593,17 +629,20 @@ void moveVertical() {
 
 	}
 
+	//check if moving upwards
 	if (ySpeed < 0) {
 		//player top if movement goes through this frame
 		uint16_t newPlayerY = ((playerYScaled + (ySpeed>>3)) >> 3) - hatHeight;
-
+		//checking if the player has hit a roof
 		if (!checkRoofCollision(playerX, newPlayerY) || !checkRoofCollision(playerX + sideEdge - 1, newPlayerY) || !checkRoofCollision(playerX - sideEdge + 1, newPlayerY)) {
 			ySpeed = 0;
 		}
+		//accelerate down due to gravity
 		addGravity();
 	}
 
 	if (joydata & J_A && !(joydata & J_DOWN)) {
+		//detect situation where player wants to initiate a jump
 		if (onGround && !jumping && jumpReleased) {
 			ySpeed = -JUMPPOWER;
 			jumping = 1;
@@ -613,6 +652,7 @@ void moveVertical() {
 			set_sprite_tile(1,  10);
 			playSound(3);
 		}
+		//detect when A button is being held down, so jump higher
 		else if (jumping < 12 && !onGround && ySpeed < 0) {
 			jumping += 1;
 			ySpeed -= JUMPCARRY;
@@ -621,15 +661,18 @@ void moveVertical() {
 		jumpReleased = 1;
 	}
 
-	if (onGround && xSpeed != 0) {
-		hp -= 1;
-	}
 
+
+	//being in water adds hp
 	if (inWater) {
 		hp += 10;
 
 	}
 
+	//moving horizontally bleeds hp, this should be somewhere else, but it's tied to movement
+	if (onGround && xSpeed != 0) {
+		hp -= 1;
+	}
 	hp = i16Clamp(hp, 0, maxHp);
 
 
@@ -664,7 +707,7 @@ void moveVertical() {
 
 }
 
-
+//moves player horizontally
 void moveHorizontal() {
 	hatHeight = (hp >> 6) + 3;
 	sideEdge = (hp >> 7) + 2;
@@ -723,6 +766,10 @@ void moveHorizontal() {
 
 	playerX = playerXScaled >> 3;
 }
+
+//figures out where the player & background map should be put on the screen
+//playerx & y mean how far the player should be from the top left corner of map
+//map position is calculated accordingly to scroll smoothly, but not showing outside of the map in viewport
 void updateEntityPositions(uint8_t force) {
 
 	_saved_bank = _current_bank;
@@ -826,10 +873,12 @@ void updateEntityPositions(uint8_t force) {
 
 }
 
+//moves projectiles to correct position on screen, based on their position in relation to the background map
+//updateentitypositions must be called before this to update xdiff & ydiff
 void updateProjectilePositions() {
 	for (uint8_t i = 0; i < PROJECTILECOUNT ; i++) {
 		if (projectiles[i].active) {
-			//projectile positions
+			//projectile positions converted to screen space from game locations
 			uint16_t projectileScreenX = projectiles[i].x - xDiff;
 			uint16_t projectileScreenY = projectiles[i].y - yDiff;
 			//position probably overflows at values > 256
@@ -844,7 +893,13 @@ void updateProjectilePositions() {
 	
 }
 
-//shuffling to initialize bkg submap correctly
+//set_bkg submap draws garbage tiles on the screen, if the background moves significantly at once(>8px/frame)
+//this can happen when a new level is loaded and the player teleports to the location where the level should start
+//this can be avoided if the map is scrolled smoothly, as new tiles appear correctly as long as the single jump per frame is not too large
+//to achieve this, this function does the following:
+// initialize player at top left corner of the map
+// move player smoothly to bottom right and back to top left
+// move player smoothly to the point x&y
 void shufflePlayer(uint16_t x, uint16_t y) {
 
 	_saved_bank = _current_bank;
@@ -909,7 +964,7 @@ void shufflePlayer(uint16_t x, uint16_t y) {
 }
 
 
-
+//initializes the projectile array, see structs/projectileholder.h for projectile related definitions
 void initProjectiles() {
 	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 		projectiles[i].active = 0;	
@@ -928,12 +983,16 @@ void initProjectiles() {
 	}
 }
 
+
+//loads the level, which id is stored in currentMap
+//initializes sprite locations, palettes etc.
 void startLevel()  {
 
 	HIDE_BKG;
 	HIDE_SPRITES;
 	DISPLAY_OFF;
 
+	//get map data
 	mapBank = getMapBank(currentMap);
 	mapWidth = getMapWidth(currentMap);
 	mapHeight = getMapHeight(currentMap);
@@ -942,9 +1001,8 @@ void startLevel()  {
 	mapPalette = getMapPalette(currentMap);
 
 
-
+	//init sprites from second bank
 	initSplashDownSprite();
-	initBleedSprite();
 
 
 	//red/blue switch for switchblocks, 0 for red
@@ -966,6 +1024,7 @@ void startLevel()  {
 
 	set_bkg_palette(0, 8, &primaryBackgroundPalette[0]);
 	
+	//set map tileset data to vram
 	_saved_bank = _current_bank;
 	SWITCH_ROM(BANK(Tileset));
 	VBK_REG=0;
@@ -974,14 +1033,14 @@ void startLevel()  {
 
 	set_bkg_data(SWITCHBLOCKS[0], 3, PrimaryBlocks); 
 
-	
+	//load background map to top left corner
 	SWITCH_ROM(mapBank);
 	VBK_REG = 1;
-	set_bkg_submap(0, 0, 20, 18, mapPalette, mapWidth); //Map09PLN1
+	set_bkg_submap(0, 0, 20, 18, mapPalette, mapWidth);
 	VBK_REG = 0;
 	set_bkg_submap(0, 0, 20, 18, mapTiles, mapWidth);
 
-
+	//finds, which tile the player should spawn on the map
 	uint8_t shouldBreak = 0;
 	for (y = 0; y < mapHeight; y++) {
 		if (shouldBreak) {
@@ -989,24 +1048,28 @@ void startLevel()  {
 		}
 		for (x = 0; x < mapWidth; x++) {
 			uint16_t ind = mapWidth*y + x;
-			if (mapTiles[ind] == 0x04) {
+			if (mapTiles[ind] == SPAWNPOINTTILE) {
 				shouldBreak = 1;
 				break;
 			}
 		}
 	}
+	//these are locations of player in relation to top left corner of the level
 	x = x*8 + 4;
 	y *= 8;
+	//these are the same coordinates game logic locations (8x more values to have subpixel movenet)
 	playerXScaled = x << 3;
 	playerYScaled = y << 3;
 
 
+	//set_bkg_submap will mess up the screen if values are too large, so move the player there smoothly
 	SWITCH_ROM(_saved_bank);
 	shufflePlayer(x, y);
 
 	_saved_bank = _current_bank;
 	SWITCH_ROM(mapBank);
 
+	//figuring out where the finishing tile is and if there are any timed traps/platforms on the level
 	hasTraps = 0;
 	for (uint16_t j = 0; j < mapHeight; j++) {
 		for (uint16_t i = 0; i < mapWidth; i++) {
@@ -1024,6 +1087,7 @@ void startLevel()  {
 	}
 	SWITCH_ROM(_saved_bank);
 
+	//finally setting everything where they belong
 	updateEntityPositions(1);
 	
 	SHOW_BKG;
@@ -1036,7 +1100,6 @@ void startLevel()  {
 
 
 void main(){
-
 
 
 
@@ -1058,6 +1121,7 @@ void main(){
 	SHOW_BKG;
 
 
+	//splash screen
 	showStartMenu();
 
 
@@ -1065,32 +1129,33 @@ void main(){
 
 
 	while(1) {
+		//ask player to select a map
 		currentMap = levelSelectionMenu(MAPCOUNT, currentMap);
 
 
 		set_sprite_palette(0, 1, &playerPalette[0]); // loading 1 palette of 4 colors
 
 
+		//load player sprite data
 		SWITCH_ROM(BANK(playerTilesets));
 		set_sprite_data(0, 16, playerTilesets[0]);
 
 		SWITCH_ROM(_saved_bank);
 
 
-
+		//projectile sprite data
 		set_sprite_data(16, 2, Projectile);
 		set_sprite_palette(1, 1, &projectilePalette[0]);
-
 
 		set_sprite_tile(0, 0);
 		set_sprite_tile(1, 2);
 
-		set_sprite_prop(0,0); //loading 0th palette
+		set_sprite_prop(0,0); //setting 0th palette
 		set_sprite_prop(1,0); //also 0th
 
 
 
-		
+		//loading the level that is now set in currentMap
 		startLevel();
 
 		while(1) {
@@ -1099,6 +1164,7 @@ void main(){
 			previousJoydata = joydata;
 			joydata = joypad();
 
+			//game lifecycle
 			moveHorizontal();
 			moveVertical();
 			updateEntityPositions(0);
@@ -1110,15 +1176,17 @@ void main(){
 			moveProjectiles();
 
 
-
+			//most button inputs
 			if (joydata & J_B && !(previousJoydata & J_B)) {
 				fire();
 			}
 			
+			//select restarts level
 			if (!(joydata & J_SELECT) && (previousJoydata & J_SELECT)) {
 				playSound(9);
 				startLevel();
 			}
+			//A+down drops down from a non roof tile
 			if ((joydata & J_A && joydata & J_DOWN) && !(previousJoydata & J_A && previousJoydata & J_DOWN)) {
 				justDroppedDown = 1;
 				dropDownFrames = DROPDOWNDURATION;
@@ -1128,6 +1196,7 @@ void main(){
 				playSound(0);
 				break;
 			}
+			//more lifecycle
 			checkProjectileCollisions();
 			updateTraps();
 			loopSplash();
@@ -1138,7 +1207,7 @@ void main(){
 			timeTrapCounter--;
 
 
-
+			//checking if player is on top of finish flag
 			if (checkFinish(finishTileIndex, mapWidth, playerX, playerY)) {
 				playSound(8);
 				mapCompleted(currentMap, hp);
@@ -1150,7 +1219,7 @@ void main(){
 				startLevel();
 			}
 
-			
+			//checking if player is dead, and restarting level
 			if (hp <= 0) {
 				set_sprite_palette(0, 1, &playerPalette[0]); 
 				playSound(9);
