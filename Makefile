@@ -8,7 +8,7 @@ LCC = $(GBDK_HOME)bin/lcc
 # Set platforms to build here, spaced separated. (These are in the separate Makefile.targets)
 # They can also be built/cleaned individually: "make gg" and "make gg-clean"
 # Possible are: gb gbc pocket megaduck sms gg
-TARGETS=gb #gbc
+TARGETS=gbc #gb
 
 #-Wl-yp0x143=0x80
 # Configure platform specific LCC flags here:
