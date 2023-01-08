@@ -1,6 +1,6 @@
 # Little Green Blob
 
-A gameboy platformer written in C using gbdk-2020.
+A gameboy color platformer written in C using gbdk-2020.
 
 ## Compiling
 
