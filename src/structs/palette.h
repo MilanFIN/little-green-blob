@@ -1,7 +1,7 @@
 
 #define PlayerTiles0CGBPal0c0 32767
-#define PlayerTiles0CGBPal0c1 6117
-#define PlayerTiles0CGBPal0c2 744
+#define PlayerTiles0CGBPal0c1 744
+#define PlayerTiles0CGBPal0c2 6117
 #define PlayerTiles0CGBPal0c3 5344
 
 #define PlayerTiles0CGBPal1c0 32767

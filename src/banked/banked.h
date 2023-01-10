@@ -43,18 +43,6 @@ BANKREF_EXTERN(clearSave)
 void loadSave(uint8_t mapcount) BANKED;
 BANKREF_EXTERN(loadSave)
 
-void initBleedSprite() BANKED;
-BANKREF_EXTERN(initBleedSprite)
-
-void spawnBleed(uint16_t x, uint16_t y, int8_t direction) BANKED;
-BANKREF_EXTERN(spawnBleed)
-
-void scrollBleed(int16_t xchange, int16_t ychange) BANKED;
-BANKREF_EXTERN(scrollBleed)
-
-void loopBleed() BANKED;
-BANKREF_EXTERN(loopBleed)
-
 void initSplashDownSprite() BANKED;
 BANKREF_EXTERN(initSplashDownSprite)
 

@@ -54,8 +54,8 @@
 
 /* Gameboy Color palette 0 */
 #define ProjectileCGBPal0c0 32767
-#define ProjectileCGBPal0c1 992
-#define ProjectileCGBPal0c2 744
+#define ProjectileCGBPal0c1 744
+#define ProjectileCGBPal0c2 6117
 #define ProjectileCGBPal0c3 1379
 
 /* Gameboy Color palette 1 */

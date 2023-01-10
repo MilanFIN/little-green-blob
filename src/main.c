@@ -692,8 +692,6 @@ void moveVertical() {
 		set_sprite_data(0, 16, playerTilesets[currentTile]);
 		SWITCH_ROM(_saved_bank);
 
-		spawnBleed(onScreenX, onScreenY, xDir);
-
 		previousTile = currentTile;
 	}
 
@@ -1200,8 +1198,6 @@ void main(){
 			checkProjectileCollisions();
 			updateTraps();
 			loopSplash();
-			loopBleed();
-			scrollBleed(onScreenX, onScreenY);
 
 			framesSinceLastFire++;
 			timeTrapCounter--;
