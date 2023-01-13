@@ -12,8 +12,8 @@ TARGETS=gbc #gb
 
 #-Wl-yp0x143=0x80
 # Configure platform specific LCC flags here:
-LCCFLAGS_gb      = -Wl-yt0x1B -Wm-yc -Wm-yn"LGB_1.0" # Set an MBC for banking (1B-ROM+MBC5+RAM+BATT) 
-LCCFLAGS_gbc     = -Wl-yt0x1B -Wm-yc -Wm-yn"LGB_1.0"
+LCCFLAGS_gb      = -Wl-yt0x1B -Wm-yc -Wm-yn"LGB_1.1" # Set an MBC for banking (1B-ROM+MBC5+RAM+BATT) 
+LCCFLAGS_gbc     = -Wl-yt0x1B -Wm-yc -Wm-yn"LGB_1.1"
 #LCCFLAGS_pocket  = -Wl-yt0x1B # Usually the same as required for .gb
 #LCCFLAGS_duck    = -Wl-yt0x1B # Usually the same as required for .gb
 #LCCFLAGS_gbc     = -Wl-yt0x1B -Wm-yc # Same as .gb with: -Wm-yc (gb & gbc) or Wm-yC (gbc exclusive)
